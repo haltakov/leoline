@@ -1,9 +1,11 @@
+import { MessageWithRole } from "../types";
+
 export interface Props {
-  text: string;
+  message: MessageWithRole;
 }
 
-const Message = ({ text }: Props) => {
-  return <div className=" bg-slate-100 border border-slate-300 p-4 rounded shadow-lg">{text}</div>;
+const Message = ({ message }: Props) => {
+  return <div className=" bg-slate-100 border border-slate-300 p-4 rounded shadow-lg">{message.text}</div>;
 };
 
 export default Message;
