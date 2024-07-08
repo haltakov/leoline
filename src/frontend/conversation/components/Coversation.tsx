@@ -1,13 +1,16 @@
 "use client";
 
 import useListen from "@/frontend/listen/hooks/useListen";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Message from "./Message";
 import useTranscribe from "@/frontend/transcribe/hooks/useTranscribe";
 import { MessageWithRole } from "../types";
 import useAnswer from "@/frontend/answer/hooks/useAnswer";
 
 const Conversation = () => {
+  // Audio ref
+  const audioRef = useRef<HTMLAudioElement>(null);
+
   // Messages
   const [messages, setMessages] = useState<MessageWithRole[]>([
     { text: "What is the capital of Germany?", isUser: true },
@@ -20,7 +23,7 @@ const Conversation = () => {
   const { transcribedText } = useTranscribe({ audio: audioBlob });
 
   // Answer
-  const { answer, isAnswering } = useAnswer({ messages });
+  const { answer, isAnswering } = useAnswer({ messages, audioRef });
 
   useEffect(() => {
     if (!isAnswering && answer) {
@@ -49,6 +52,8 @@ const Conversation = () => {
           {isRecording ? "Stop" : "Talk"}
         </button>
       </div>
+
+      <audio controls ref={audioRef}></audio>
     </div>
   );
 };
