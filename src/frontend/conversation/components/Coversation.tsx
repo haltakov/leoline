@@ -6,6 +6,7 @@ import useTranscribe from "@/frontend/transcribe/hooks/useTranscribe";
 import { MessageWithRole } from "../types";
 import useAnswer from "@/frontend/answer/hooks/useAnswer";
 import useListenVad from "@/frontend/listen/hooks/useListenVad";
+import clsx from "clsx";
 
 export interface Props {
   language: string;
@@ -43,27 +44,29 @@ const Conversation = ({ language }: Props) => {
     setMessages((messages) => [...messages, { text: transcribedText, isUser: true }]);
   }, [transcribedText]);
 
-  // useEffect(() => {
-  //   if (!isAnswering) {
-  //     startListen();
-  //   }
-  // }, [isAnswering, startListen]);
-
   return (
-    <div className="min-h-screen flex flex-col justify-between p-8 ">
-      <div className="max-w-[1000px] space-y-4">
+    <div className="min-h-screen flex flex-col justify-center p-8 ">
+      {/* <div className="max-w-[1000px] space-y-4">
         {messages.map((message, index) => (
           <Message key={index} message={message} />
         ))}
 
         {isAnswering && answer && <Message message={{ text: answer, isUser: false }} />}
-      </div>
+      </div> */}
 
-      <div className="flex justify-center bg-slate-00 w-full">
+      {/* <div className="flex justify-center bg-slate-00 w-full">
         <button className="bg-blue-700 text-white font-bold text-xl px-16 py-4">{isRecording ? "Stop" : "Talk"}</button>
-      </div>
+      </div> */}
 
-      <audio controls ref={audioRef}></audio>
+      <div
+        className={clsx(
+          "bg-gradient-to-b from-gray-400 to-gray-500 rounded-full size-24 shadow-2xl blur-sm transition-all ease-in-out",
+          isRecording ? "from-red-400 to-red-500 scale-125" : "",
+          isAnswering ? "from-blue-400 to-blue-600 scale-150 animate-pulse" : ""
+        )}
+      ></div>
+
+      <audio className="hidden" controls ref={audioRef}></audio>
     </div>
   );
 };
