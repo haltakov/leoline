@@ -13,7 +13,8 @@ const Conversation = () => {
 
   // Messages
   const [messages, setMessages] = useState<MessageWithRole[]>([
-    { text: "What is the capital of Germany?", isUser: true },
+    { text: "Tell me a very short story about Mickey Mouse", isUser: true },
+    // { text: "What is the capital of Germany?", isUser: true },
   ]);
 
   // Listen

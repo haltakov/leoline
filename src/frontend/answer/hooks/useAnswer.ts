@@ -39,7 +39,17 @@ const useAnswer = ({ messages, audioRef }: Props) => {
       let leftover = new Uint8Array();
       let result = await reader.read();
 
-      while (!result.done && audioContext.current) {
+      while (audioContext.current) {
+        if (!result.value) {
+          await new Promise<void>((resolve) => {
+            setTimeout(() => {
+              resolve();
+            }, 100);
+          });
+
+          continue;
+        }
+
         const data = new Uint8Array(leftover.length + result.value.length);
         data.set(leftover);
         data.set(result.value, leftover.length);
@@ -65,12 +75,12 @@ const useAnswer = ({ messages, audioRef }: Props) => {
         nextStartTime += audioBuffer.duration;
 
         result = await reader.read();
-        if (result.done) {
-          source.current.onended = () => {
-            // stop();
-            // callback();
-          };
-        }
+        // if (result.done) {
+        //   source.current.onended = () => {
+        //     // stop();
+        //     // callback();
+        //   };
+        // }
       }
 
       // const responseStream = new Response(stream);

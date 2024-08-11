@@ -1,4 +1,4 @@
-import { getAnswerService } from "@/backend/answer/utils";
+import { convertStreamToWeb, getAnswerService } from "@/backend/answer/utils";
 import { MessageWithRole } from "@/frontend/conversation/types";
 import { NextResponse, NextRequest } from "next/server";
 
@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
   if (!messages) return new NextResponse("Messages not provided", { status: 400 });
 
   // Return the stream from the answer service
-  const stream = await answerService.answer(messages);
-  return new Response(stream);
+  const nodejsReadable = await answerService.answer(messages);
+  const webReadableStream = convertStreamToWeb(nodejsReadable);
+  return new Response(webReadableStream);
 }
