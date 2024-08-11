@@ -1,10 +1,8 @@
 "use server";
 
-import { LANGUAGE } from "@/const";
 import { getTranscribeService } from "../utils";
 
-const transcribeService = getTranscribeService(LANGUAGE);
-
-export const transcribe = async (data: FormData): Promise<string> => {
+export const transcribe = async (data: FormData, language: string): Promise<string> => {
+  const transcribeService = getTranscribeService(language);
   return transcribeService.transcribe(data.get("audio") as Blob);
 };

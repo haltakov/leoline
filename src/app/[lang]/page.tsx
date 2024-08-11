@@ -1,11 +1,19 @@
 import Conversation from "@/frontend/conversation/components/Coversation";
 
-export default function Home() {
+interface Props {
+  params: {
+    lang: string;
+  };
+}
+
+const Home = ({ params: { lang } }: Props) => {
   return (
     <main className="min-h-screen bg-blue-200">
       <div className="flex justify-center">
-        <Conversation />
+        <Conversation language={lang} />
       </div>
     </main>
   );
-}
+};
+
+export default Home;

@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 
 export interface Props {
   audio: Blob | null;
+  language: string;
 }
 
-const useTranscribe = ({ audio }: Props) => {
+const useTranscribe = ({ audio, language }: Props) => {
   const [transcribedText, setTranscribedText] = useState("");
 
   useEffect(() => {
@@ -16,7 +17,7 @@ const useTranscribe = ({ audio }: Props) => {
     const formData = new FormData();
     formData.append("audio", audio, "recording.webm");
 
-    transcribe(formData).then((text) => {
+    transcribe(formData, language).then((text) => {
       setTranscribedText(text);
     });
   }, [audio]);

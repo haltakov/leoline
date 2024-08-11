@@ -7,7 +7,11 @@ import { MessageWithRole } from "../types";
 import useAnswer from "@/frontend/answer/hooks/useAnswer";
 import useListenVad from "@/frontend/listen/hooks/useListenVad";
 
-const Conversation = () => {
+export interface Props {
+  language: string;
+}
+
+const Conversation = ({ language }: Props) => {
   // Audio ref
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -22,7 +26,7 @@ const Conversation = () => {
   const { audioBlob, isRecording, startListen } = useListenVad();
 
   // Transcribe
-  const { transcribedText } = useTranscribe({ audio: audioBlob });
+  const { transcribedText } = useTranscribe({ audio: audioBlob, language });
 
   // Answer
   const { answer, isAnswering } = useAnswer({ messages, audioRef });
