@@ -14,5 +14,12 @@ export async function POST(request: NextRequest) {
   // Return the stream from the answer service
   const nodejsReadable = await answerService.answer(messages);
   const webReadableStream = convertStreamToWeb(nodejsReadable);
-  return new Response(webReadableStream);
+  return new Response(webReadableStream, {
+    status: 200,
+    statusText: "OK",
+    headers: {
+      "Transfer-Encoding": "chunked",
+      Connection: "keep-alive",
+    },
+  });
 }
