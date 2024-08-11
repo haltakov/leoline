@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ricky0123/vad-react": "^0.0.24",
     "next": "14.2.4",
     "openai": "^4.52.0",
     "pino": "^9.2.0",

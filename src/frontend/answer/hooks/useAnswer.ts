@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import { AnswerParams } from "../types";
 import { MessageWithRole } from "@/frontend/conversation/types";
@@ -75,71 +77,13 @@ const useAnswer = ({ messages, audioRef }: Props) => {
         nextStartTime += audioBuffer.duration;
 
         result = await reader.read();
-        // if (result.done) {
-        //   source.current.onended = () => {
-        //     // stop();
-        //     // callback();
-        //   };
-        // }
+
+        if (result.done) {
+          source.current.onended = () => {
+            setIsAnswering(false);
+          };
+        }
       }
-
-      // const responseStream = new Response(stream);
-      // console.log("DBG: Response stream created");
-      // const audioBlob = await responseStream.blob();
-      // console.log("DBG: Audio blob created");
-      // const audioUrl = URL.createObjectURL(audioBlob);
-
-      // console.log("DBG: Audio URL created");
-
-      // audioRef.current!.src = audioUrl;
-      // audioRef.current!.play();
-
-      // // Initialize the media source
-      // const mediaSource = new MediaSource();
-      // mediaSourceRef.current = mediaSource;
-
-      // audioRef.current!.src = URL.createObjectURL(mediaSource);
-
-      // await new Promise<void>((resolve) => {
-      //   mediaSource.addEventListener("sourceopen", () => resolve(), { once: true });
-      // });
-
-      // const sourceBuffer = mediaSource.addSourceBuffer('audio/webm; codecs="opus"');
-
-      // const decoder = new TextDecoder();
-      // const stream = response.body.getReader();
-      // while (true) {
-      //   const { done, value } = await stream.read();
-      //   if (done) break;
-
-      //   await new Promise<void>((resolve) => {
-      //     if (!sourceBuffer.updating) {
-      //       sourceBuffer.appendBuffer(value);
-      //       console.log("DBG: Appended buffer", value.length);
-      //       resolve();
-      //     } else {
-      //       sourceBuffer.addEventListener(
-      //         "updateend",
-      //         () => {
-      //           sourceBuffer.appendBuffer(value);
-      //           console.log("DBG: Appended buffer 2", value.length);
-      //           resolve();
-      //         },
-      //         { once: true }
-      //       );
-      //     }
-      //   });
-
-      //   // const tokenValue = decoder.decode(value);
-
-      //   // setAnswer((prev) => prev + tokenValue);
-      // }
-
-      // sourceBuffer.addEventListener("updateend", () => {
-      //   mediaSource.endOfStream();
-      // });
-
-      setIsAnswering(false);
     })();
   }, [messages]);
 

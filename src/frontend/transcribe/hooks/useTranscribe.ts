@@ -1,3 +1,5 @@
+"use client";
+
 import { transcribe } from "@/backend/transcribe/service";
 import { useEffect, useState } from "react";
 
