@@ -1,25 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { MessageWithRole } from "@/frontend/conversation/types";
+import { sleep } from "@/utils";
 
 export interface Props {
-  messages: MessageWithRole[];
+  onAnswerEnd: () => void;
 }
 
-const useAnswer = ({ messages }: Props) => {
-  const [answer, setAnswer] = useState<string>("");
-  const [isAnswering, setIsAnswering] = useState<boolean>(false);
-
+const useAnswer = ({ onAnswerEnd }: Props) => {
   const audioContext = useRef<AudioContext | null>(null);
   const source = useRef<AudioBufferSourceNode | null>(null);
 
-  useEffect(() => {
-    (async () => {
+  const answer = useCallback(
+    async (messages: MessageWithRole[]) => {
       if (!messages.length || !messages[messages.length - 1].isUser) return;
-
-      setIsAnswering(true);
-      setAnswer("");
 
       const response = await fetch("/api/answer", {
         method: "POST",
@@ -41,12 +36,7 @@ const useAnswer = ({ messages }: Props) => {
 
       while (audioContext.current) {
         if (!result.value) {
-          await new Promise<void>((resolve) => {
-            setTimeout(() => {
-              resolve();
-            }, 100);
-          });
-
+          await sleep(100);
           continue;
         }
 
@@ -78,14 +68,15 @@ const useAnswer = ({ messages }: Props) => {
 
         if (result.done) {
           source.current.onended = () => {
-            setIsAnswering(false);
+            onAnswerEnd();
           };
         }
       }
-    })();
-  }, [messages]);
+    },
+    [onAnswerEnd]
+  );
 
-  return { answer, isAnswering };
+  return { answer };
 };
 
 export default useAnswer;

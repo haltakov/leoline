@@ -19,7 +19,7 @@ export class StreamCombiner {
   }
 
   private async pipeNextStream(): Promise<void> {
-    if (this.isPiping || this.streamQueue.length === 0) return;
+    if (this.isPiping) return;
 
     this.isPiping = true;
     const currentStream = this.streamQueue.shift();
@@ -43,6 +43,7 @@ export class StreamCombiner {
       }
     } else {
       this.isPiping = false;
+
       if (this.streamQueue.length === 0 && this.allStreamsAdded) {
         this.combinedStream.end();
       }
@@ -51,6 +52,7 @@ export class StreamCombiner {
 
   end(): void {
     this.allStreamsAdded = true;
+
     if (!this.isPiping && this.streamQueue.length === 0) {
       this.pipeNextStream();
       this.combinedStream.end();
