@@ -20,7 +20,7 @@ const useTranscribe = ({ audio, language }: Props) => {
     transcribe(formData, language).then((text) => {
       setTranscribedText(text);
     });
-  }, [audio]);
+  }, [audio, language]);
 
   return { transcribedText };
 };

@@ -13,9 +13,6 @@ export interface Props {
 }
 
 const Conversation = ({ language }: Props) => {
-  // Audio ref
-  const audioRef = useRef<HTMLAudioElement>(null);
-
   // Messages
   const [messages, setMessages] = useState<MessageWithRole[]>([
     // { text: "Tell me a very short story about Mickey Mouse", isUser: true },
@@ -30,7 +27,7 @@ const Conversation = ({ language }: Props) => {
   const { transcribedText } = useTranscribe({ audio: audioBlob, language });
 
   // Answer
-  const { answer, isAnswering } = useAnswer({ messages, audioRef });
+  const { answer, isAnswering } = useAnswer({ messages });
 
   useEffect(() => {
     if (!isAnswering && answer) {
@@ -65,8 +62,6 @@ const Conversation = ({ language }: Props) => {
           isAnswering ? "from-blue-400 to-blue-600 scale-150 animate-pulse" : ""
         )}
       ></div>
-
-      <audio className="hidden" controls ref={audioRef}></audio>
     </div>
   );
 };

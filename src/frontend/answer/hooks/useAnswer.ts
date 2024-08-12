@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnswerParams } from "../types";
 import { MessageWithRole } from "@/frontend/conversation/types";
 
 export interface Props {
   messages: MessageWithRole[];
-  audioRef: React.RefObject<HTMLAudioElement>;
 }
 
-const useAnswer = ({ messages, audioRef }: Props) => {
+const useAnswer = ({ messages }: Props) => {
   const [answer, setAnswer] = useState<string>("");
   const [isAnswering, setIsAnswering] = useState<boolean>(false);
 
