@@ -5,9 +5,10 @@ import useBrowser from "@/frontend/browser/hooks/useBrowser";
 export interface Props {
   onSpeechStart: () => any;
   onSpeechEnd: (audio: Float32Array) => any;
+  onSpeechMisfire: () => any;
 }
 
-const useVAD = ({ onSpeechStart, onSpeechEnd }: Props) => {
+const useVAD = ({ onSpeechStart, onSpeechEnd, onSpeechMisfire }: Props) => {
   const browserType = useBrowser();
 
   const {
@@ -22,6 +23,7 @@ const useVAD = ({ onSpeechStart, onSpeechEnd }: Props) => {
     minSpeechFrames: 4,
     onSpeechStart,
     onSpeechEnd,
+    onVADMisfire: onSpeechMisfire,
     ...getVADConfig(browserType),
   });
 

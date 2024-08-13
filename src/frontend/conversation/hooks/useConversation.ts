@@ -35,6 +35,9 @@ const useConversation = ({ language }: Props) => {
       const blob = new Blob([wav], { type: "audio/wav" });
       transcribeAudio(blob);
     },
+    onSpeechMisfire: () => {
+      setState(ConversationState.LISTEN);
+    },
   });
 
   // Answer
