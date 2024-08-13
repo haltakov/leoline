@@ -21,6 +21,7 @@ const useVAD = ({ onSpeechStart, onSpeechEnd, onSpeechMisfire }: Props) => {
     startOnLoad: true,
     positiveSpeechThreshold: 0.6,
     minSpeechFrames: 4,
+    redemptionFrames: 20,
     onSpeechStart,
     onSpeechEnd,
     onVADMisfire: onSpeechMisfire,
