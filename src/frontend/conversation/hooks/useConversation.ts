@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useVAD from "./useVAD";
 import { ConversationState, MessageWithRole } from "../types";
 import useBrowser from "@/frontend/browser/hooks/useBrowser";
@@ -24,6 +24,11 @@ const useConversation = ({ language }: Props) => {
   // Voice Activity Detection
   const { isVADLoading, isVADError, startListen, pauseListen } = useVAD({
     onSpeechStart: () => {
+      if (state !== ConversationState.LISTEN) {
+        abortController.abort();
+      }
+
+      console.log("DBG: onSpeechStart");
       setState(ConversationState.RECORD);
     },
     onSpeechEnd: (audio: Float32Array) => {
@@ -36,9 +41,13 @@ const useConversation = ({ language }: Props) => {
       transcribeAudio(blob);
     },
     onSpeechMisfire: () => {
+      console.log("DBG: onSpeechMisfire");
       setState(ConversationState.LISTEN);
     },
   });
+
+  // Answer abort controller
+  const [abortController, setAbortController] = useState<AbortController>(new AbortController());
 
   // Answer
   const { answer } = useAnswer({
@@ -59,7 +68,11 @@ const useConversation = ({ language }: Props) => {
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
 
-      answer(updatedMessages);
+      // Reset the abort controller
+      const abortController = new AbortController();
+      setAbortController(abortController);
+
+      answer(updatedMessages, abortController.signal);
     },
     [answer, messages]
   );
