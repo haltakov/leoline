@@ -19,7 +19,7 @@ const useVAD = ({ onSpeechStart, onSpeechEnd, onSpeechMisfire }: Props) => {
     errored: isVADError,
   } = useMicVAD({
     startOnLoad: true,
-    positiveSpeechThreshold: 0.6,
+    positiveSpeechThreshold: 0.8,
     minSpeechFrames: 4,
     redemptionFrames: 20,
     onSpeechStart,
