@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useVAD from "./useVAD";
 import { ConversationState, MessageWithRole } from "../types";
 import useBrowser from "@/frontend/browser/hooks/useBrowser";
@@ -21,17 +21,23 @@ const useConversation = ({ language }: Props) => {
   // Message History
   const [messages, setMessages] = useState<MessageWithRole[]>([]);
 
+  // Answer abort controller
+  const abortController = useRef<AbortController>(new AbortController());
+
   // Voice Activity Detection
   const { isVADLoading, isVADError, startListen, pauseListen } = useVAD({
     onSpeechStart: () => {
       if (state !== ConversationState.LISTEN) {
-        abortController.abort();
+        abortController.current.abort();
       }
 
       console.log("DBG: onSpeechStart");
       setState(ConversationState.RECORD);
     },
     onSpeechEnd: (audio: Float32Array) => {
+      // Reset the abort controller
+      abortController.current = new AbortController();
+
       if (browserType === BrowserType.FIREFOX) {
         pauseListen();
       }
@@ -45,9 +51,6 @@ const useConversation = ({ language }: Props) => {
       setState(ConversationState.LISTEN);
     },
   });
-
-  // Answer abort controller
-  const [abortController, setAbortController] = useState<AbortController>(new AbortController());
 
   // Answer
   const { answer } = useAnswer({
@@ -63,23 +66,23 @@ const useConversation = ({ language }: Props) => {
   // Add question text
   const submitQuestion = useCallback(
     (questionText: string) => {
+      if (abortController.current.signal.aborted) return;
+
       setState(ConversationState.SPEAK);
 
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
 
-      // Reset the abort controller
-      const abortController = new AbortController();
-      setAbortController(abortController);
-
-      answer(updatedMessages, abortController.signal);
+      answer(updatedMessages, abortController.current.signal);
     },
-    [answer, messages]
+    [answer, messages, state]
   );
 
   // Transcription
   const transcribeAudio = useCallback(
     async (audio: Blob) => {
+      if (abortController.current.signal.aborted) return;
+
       setState(ConversationState.TRANSCRIBE);
 
       const formData = new FormData();
