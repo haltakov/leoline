@@ -5,6 +5,7 @@ import OpenAI from "openai";
 import pino from "pino";
 import { StreamCombiner } from "@/backend/answer/utils/streamCombiner";
 import { Readable } from "stream";
+import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 
 const logger = pino();
 
@@ -42,14 +43,26 @@ export class ChatGPTAnswerService extends AnswerService {
     const streamCombiner = new StreamCombiner();
     const resultStream = streamCombiner.getCombinedStream();
 
+    // Prepare the messages for the OpenAI API
+    const messagesOpenAIFormat = [
+      {
+        role: "system",
+        content:
+          "You are an asistant called Leoline. Your job is to tell stories to kids. If asked for a story topic, directly tell the story. If asked soemthing else you can give a short answer. Avoid complex words and phrases. Tell entertaining stories! Make sure that the content is suitable for little kids.",
+      },
+      ...messages.map(({ text, isUser }) => ({
+        role: isUser ? "user" : "assistant",
+        content: text,
+      })),
+    ] as Array<ChatCompletionMessageParam>;
+
+    console.log("DBG:", { messagesOpenAIFormat });
+
     // Get the response from the OpenAI API LLM
     logger.info("Requesting OpenAI text response");
     const textResponseStream = await this.openai.chat.completions.create({
       model: "gpt-4o",
-      messages: messages.map(({ text, isUser }) => ({
-        role: isUser ? "user" : "assistant",
-        content: text,
-      })),
+      messages: messagesOpenAIFormat,
       stream: true,
     });
     logger.info("Text response streaming started");
