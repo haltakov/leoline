@@ -29,6 +29,7 @@ const useConversation = ({ language }: Props) => {
     onSpeechStart: () => {
       if (state !== ConversationState.LISTEN) {
         abortController.current.abort();
+        abort();
       }
 
       console.log("DBG: onSpeechStart");
@@ -53,7 +54,7 @@ const useConversation = ({ language }: Props) => {
   });
 
   // Answer
-  const { answer } = useAnswer({
+  const { answer, abort } = useAnswer({
     onAnswerEnd: () => {
       setState(ConversationState.LISTEN);
 

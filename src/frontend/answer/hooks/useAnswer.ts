@@ -83,7 +83,11 @@ const useAnswer = ({ onAnswerEnd }: Props) => {
     [onAnswerEnd]
   );
 
-  return { answer };
+  const abort = useCallback(() => {
+    audioContext.current?.close();
+  }, []);
+
+  return { answer, abort };
 };
 
 export default useAnswer;
