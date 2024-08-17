@@ -9,9 +9,12 @@ import useAnswer from "@/frontend/answer/hooks/useAnswer";
 
 export interface Props {
   language: string;
+  isMicActive: boolean;
+  isLongActive: boolean;
+  isScaryActive: boolean;
 }
 
-const useConversation = ({ language }: Props) => {
+const useConversation = ({ language, isMicActive, isLongActive, isScaryActive }: Props) => {
   // Conversation State
   const [state, setState] = useState<ConversationState>(ConversationState.INITIALIZE);
   const [isAnswering, setIsAnswering] = useState(false);
@@ -38,7 +41,7 @@ const useConversation = ({ language }: Props) => {
       setIsAnswering(false);
       setState(ConversationState.LISTEN);
 
-      if (browserType === BrowserType.FIREFOX) {
+      if (browserType === BrowserType.FIREFOX && isMicActive) {
         startListen();
       }
     },
@@ -81,6 +84,15 @@ const useConversation = ({ language }: Props) => {
     },
   });
 
+  // Mic active toggle
+  useEffect(() => {
+    if (isMicActive) {
+      startListen();
+    } else {
+      pauseListen();
+    }
+  }, [isMicActive]);
+
   // Add question text
   const submitQuestion = useCallback(
     (questionText: string) => {
@@ -93,7 +105,7 @@ const useConversation = ({ language }: Props) => {
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
 
-      answer(updatedMessages, abortController.current.signal);
+      answer(updatedMessages, { abort: abortController.current.signal, isLong: isLongActive, isScary: isScaryActive });
     },
     [answer, messages, state]
   );

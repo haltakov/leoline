@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { MessageWithRole } from "@/frontend/conversation/types";
 import { sleep } from "@/utils";
+import { AnswerOptionsWithAbort } from "../types";
 
 export interface Props {
   onAnswerEnd: () => void;
@@ -13,14 +14,14 @@ const useAnswer = ({ onAnswerEnd }: Props) => {
   const source = useRef<AudioBufferSourceNode | null>(null);
 
   const answer = useCallback(
-    async (messages: MessageWithRole[], abort?: AbortSignal) => {
+    async (messages: MessageWithRole[], options?: AnswerOptionsWithAbort) => {
       if (!messages.length || !messages[messages.length - 1].isUser) return;
 
       try {
         const response = await fetch("/api/answer", {
           method: "POST",
-          body: JSON.stringify({ messages }),
-          signal: abort,
+          body: JSON.stringify({ messages, options: { ...options, abort: undefined } }),
+          signal: options?.abort,
         });
 
         if (!response.ok || !response.body) {
@@ -75,7 +76,7 @@ const useAnswer = ({ onAnswerEnd }: Props) => {
           }
         }
       } catch (error) {
-        if (abort?.aborted) {
+        if (options?.abort?.aborted) {
           audioContext.current?.close();
         }
       }

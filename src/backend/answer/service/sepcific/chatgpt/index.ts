@@ -6,6 +6,7 @@ import pino from "pino";
 import { StreamCombiner } from "@/backend/answer/utils/streamCombiner";
 import { Readable } from "stream";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+import { AnswerOptions } from "@/backend/answer/types";
 
 const logger = pino();
 
@@ -38,7 +39,28 @@ export class ChatGPTAnswerService extends AnswerService {
     }
   }
 
-  async answer(messages: MessageWithRole[]): Promise<Readable> {
+  private getSystemMessage(options?: AnswerOptions): string {
+    const defaultMessage =
+      "You are an asistant called Leoline. Your job is to tell stories to kids. If asked for a story topic, directly tell the story. If asked soemthing else you can give a short answer. Avoid complex words and phrases.";
+
+    const messages = [defaultMessage];
+
+    // Scary mode
+    messages.push(
+      options?.isScary
+        ? "Tell scary stories if the user asks for it."
+        : "Make sure stories are not scary and suitable for children."
+    );
+
+    // Long mode
+    if (options?.isLong) {
+      messages.push("Make the story longer by creating 3 dedicated chapters.");
+    }
+
+    return messages.join(" ");
+  }
+
+  async answer(messages: MessageWithRole[], options?: AnswerOptions): Promise<Readable> {
     // Get the result stream
     const streamCombiner = new StreamCombiner();
     const resultStream = streamCombiner.getCombinedStream();
@@ -47,8 +69,7 @@ export class ChatGPTAnswerService extends AnswerService {
     const messagesOpenAIFormat = [
       {
         role: "system",
-        content:
-          "You are an asistant called Leoline. Your job is to tell stories to kids. If asked for a story topic, directly tell the story. If asked soemthing else you can give a short answer. Avoid complex words and phrases. Tell entertaining stories! Make sure that the content is suitable for little kids.",
+        content: this.getSystemMessage(options),
       },
       ...messages.map(({ text, isUser }) => ({
         role: isUser ? "user" : "assistant",
@@ -62,6 +83,7 @@ export class ChatGPTAnswerService extends AnswerService {
       model: "gpt-4o",
       messages: messagesOpenAIFormat,
       stream: true,
+      max_tokens: 4096,
     });
     logger.info("Text response streaming started");
 
