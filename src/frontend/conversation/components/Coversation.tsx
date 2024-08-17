@@ -12,7 +12,7 @@ const Conversation = ({ language }: Props) => {
   const { state } = useConversation({ language });
 
   return (
-    <div className="min-h-screen flex flex-col justify-center p-8 ">
+    <div className="h-[100vh] flex flex-col justify-center p-8 overflow-hidden">
       <div
         className={clsx(
           "bg-gradient-to-b rounded-full size-24 shadow-2xl blur-sm transition-all ease-in-out",
