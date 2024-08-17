@@ -56,8 +56,6 @@ export class ChatGPTAnswerService extends AnswerService {
       })),
     ] as Array<ChatCompletionMessageParam>;
 
-    console.log("DBG:", { messagesOpenAIFormat });
-
     // Get the response from the OpenAI API LLM
     logger.info("Requesting OpenAI text response");
     const textResponseStream = await this.openai.chat.completions.create({

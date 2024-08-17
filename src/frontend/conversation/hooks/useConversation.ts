@@ -14,6 +14,7 @@ export interface Props {
 const useConversation = ({ language }: Props) => {
   // Conversation State
   const [state, setState] = useState<ConversationState>(ConversationState.INITIALIZE);
+  const [isAnswering, setIsAnswering] = useState(false);
 
   // Browser Type
   const browserType = useBrowser();
@@ -24,18 +25,42 @@ const useConversation = ({ language }: Props) => {
   // Answer abort controller
   const abortController = useRef<AbortController>(new AbortController());
 
+  // Answer
+  const {
+    answer,
+    abort: answerAbort,
+    pause: answerPause,
+    resume: answerResume,
+  } = useAnswer({
+    onAnswerEnd: () => {
+      console.debug("ANSWER: Answer ended");
+
+      setIsAnswering(false);
+      setState(ConversationState.LISTEN);
+
+      if (browserType === BrowserType.FIREFOX) {
+        startListen();
+      }
+    },
+  });
+
   // Voice Activity Detection
   const { isVADLoading, isVADError, startListen, pauseListen } = useVAD({
     onSpeechStart: () => {
-      if (state !== ConversationState.LISTEN) {
-        abortController.current.abort();
-        abort();
-      }
+      console.debug("VAD: Speech Start");
 
-      console.log("DBG: onSpeechStart");
+      answerPause();
+
       setState(ConversationState.RECORD);
     },
     onSpeechEnd: (audio: Float32Array) => {
+      console.debug("VAD: Speech End");
+
+      if (state !== ConversationState.LISTEN) {
+        abortController.current.abort();
+        answerAbort();
+      }
+
       // Reset the abort controller
       abortController.current = new AbortController();
 
@@ -48,19 +73,11 @@ const useConversation = ({ language }: Props) => {
       transcribeAudio(blob);
     },
     onSpeechMisfire: () => {
-      console.log("DBG: onSpeechMisfire");
-      setState(ConversationState.LISTEN);
-    },
-  });
+      console.debug("VAD: Speech Misfire");
 
-  // Answer
-  const { answer, abort } = useAnswer({
-    onAnswerEnd: () => {
-      setState(ConversationState.LISTEN);
+      setState(isAnswering ? ConversationState.SPEAK : ConversationState.LISTEN);
 
-      if (browserType === BrowserType.FIREFOX) {
-        startListen();
-      }
+      answerResume();
     },
   });
 
@@ -69,6 +86,8 @@ const useConversation = ({ language }: Props) => {
     (questionText: string) => {
       if (abortController.current.signal.aborted) return;
 
+      console.debug("ANSWER: Answer start");
+      setIsAnswering(true);
       setState(ConversationState.SPEAK);
 
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
@@ -84,12 +103,15 @@ const useConversation = ({ language }: Props) => {
     async (audio: Blob) => {
       if (abortController.current.signal.aborted) return;
 
+      console.debug("TRANSCRIBE: Transcribing audio");
       setState(ConversationState.TRANSCRIBE);
 
       const formData = new FormData();
       formData.append("audio", audio, "recording.webm");
 
       const questionText = await transcribe(formData, language);
+
+      console.debug("TRANSCRIBE: Transcribing finished");
       submitQuestion(questionText);
     },
     [language, submitQuestion]
@@ -103,7 +125,7 @@ const useConversation = ({ language }: Props) => {
 
   // Log State
   useEffect(() => {
-    console.log("CONVERSATION STATE:", state);
+    console.debug("CONVERSATION STATE:", state);
   }, [state]);
 
   return { state };

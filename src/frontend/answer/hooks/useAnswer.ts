@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { MessageWithRole } from "@/frontend/conversation/types";
 import { sleep } from "@/utils";
 
@@ -24,7 +24,7 @@ const useAnswer = ({ onAnswerEnd }: Props) => {
         });
 
         if (!response.ok || !response.body) {
-          console.log(response);
+          console.error(response);
           console.error("Failed to get answer");
           return;
         }
@@ -87,7 +87,15 @@ const useAnswer = ({ onAnswerEnd }: Props) => {
     audioContext.current?.close();
   }, []);
 
-  return { answer, abort };
+  const pause = useCallback(() => {
+    audioContext.current?.suspend();
+  }, []);
+
+  const resume = useCallback(() => {
+    audioContext.current?.resume();
+  }, []);
+
+  return { answer, abort, pause, resume };
 };
 
 export default useAnswer;
