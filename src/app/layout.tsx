@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={clsx("overflow-hidden", inter.className)}>{children}</body>
+      <body className={clsx("overflow-hidden bg-[#d45f12] min-h-screen", inter.className)}>{children}</body>
     </html>
   );
 }

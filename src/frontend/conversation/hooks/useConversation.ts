@@ -91,7 +91,7 @@ const useConversation = ({ language, isMicActive, isLongActive, isScaryActive }:
     } else {
       pauseListen();
     }
-  }, [isMicActive]);
+  }, [isMicActive, pauseListen, startListen]);
 
   // Add question text
   const submitQuestion = useCallback(
@@ -100,14 +100,18 @@ const useConversation = ({ language, isMicActive, isLongActive, isScaryActive }:
 
       console.debug("ANSWER: Answer start");
       setIsAnswering(true);
-      setState(ConversationState.SPEAK);
 
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
 
-      answer(updatedMessages, { abort: abortController.current.signal, isLong: isLongActive, isScary: isScaryActive });
+      answer(updatedMessages, {
+        abort: abortController.current.signal,
+        onStartSpeaking: () => setState(ConversationState.SPEAK),
+        isLong: isLongActive,
+        isScary: isScaryActive,
+      });
     },
-    [answer, messages, state]
+    [answer, isLongActive, isScaryActive, messages]
   );
 
   // Transcription

@@ -65,6 +65,10 @@ const useAnswer = ({ onAnswerEnd }: Props) => {
           source.current.connect(audioContext.current.destination);
           source.current.start(nextStartTime);
 
+          if (options?.onStartSpeaking) {
+            options.onStartSpeaking();
+          }
+
           nextStartTime += audioBuffer.duration;
 
           result = await reader.read();

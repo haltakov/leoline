@@ -28,7 +28,7 @@ export class ChatGPTAnswerService extends AnswerService {
 
     const speechResponse = await this.openai.audio.speech.create({
       model: "tts-1",
-      voice: "nova",
+      voice: "echo",
       input: sentence,
       response_format: "pcm",
     });
