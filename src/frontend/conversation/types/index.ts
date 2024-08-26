@@ -5,6 +5,7 @@ export interface MessageWithRole {
 
 export enum ConversationState {
   INITIALIZE = "INITIALIZE",
+  WAIT = "WAIT",
   LISTEN = "LISTEN",
   RECORD = "RECORD",
   TRANSCRIBE = "TRANSCRIBE",

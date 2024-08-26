@@ -121,7 +121,7 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     const messagesOpenAIFormat = [
       {
         role: "system",
-        content: `Repeat the exact words from the user transalated in the language with code "${language}"`,
+        content: `Repeat the exact words from the user transalated in the language with code "${language}".`,
       },
       { role: "user", content: PHRASES.get(phrase) },
     ] as Array<ChatCompletionMessageParam>;
