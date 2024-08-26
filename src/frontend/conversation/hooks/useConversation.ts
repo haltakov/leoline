@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useVAD from "./useVAD";
 import { ConversationState, MessageWithRole } from "../types";
 import useBrowser from "@/frontend/browser/hooks/useBrowser";
 import { BrowserType } from "@/frontend/browser/types";
 import { utils } from "@ricky0123/vad-react";
 import { transcribe } from "@/backend/transcribe/service";
-import useAnswer from "@/frontend/answer/hooks/useAnswer";
+import useChatAndSpeak from "@/frontend/chatAndSpeak/hooks/useChatAndSpeak";
 
 export interface Props {
   language: string;
@@ -29,30 +29,14 @@ const useConversation = ({ language, isMicActive, isLongActive, isScaryActive }:
   const abortController = useRef<AbortController>(new AbortController());
 
   // Answer
-  const {
-    answer,
-    abort: answerAbort,
-    pause: answerPause,
-    resume: answerResume,
-  } = useAnswer({
-    onAnswerEnd: () => {
-      console.debug("ANSWER: Answer ended");
-
-      setIsAnswering(false);
-      setState(ConversationState.LISTEN);
-
-      if (browserType === BrowserType.FIREFOX && isMicActive) {
-        startListen();
-      }
-    },
-  });
+  const { answer, say, abortSpeach, pauseSpeach, resumeSpeach } = useChatAndSpeak();
 
   // Voice Activity Detection
   const { isVADLoading, isVADError, startListen, pauseListen } = useVAD({
     onSpeechStart: () => {
       console.debug("VAD: Speech Start");
 
-      answerPause();
+      pauseSpeach();
 
       setState(ConversationState.RECORD);
     },
@@ -61,7 +45,7 @@ const useConversation = ({ language, isMicActive, isLongActive, isScaryActive }:
 
       if (state !== ConversationState.LISTEN) {
         abortController.current.abort();
-        answerAbort();
+        abortSpeach();
       }
 
       // Reset the abort controller
@@ -80,7 +64,7 @@ const useConversation = ({ language, isMicActive, isLongActive, isScaryActive }:
 
       setState(isAnswering ? ConversationState.SPEAK : ConversationState.LISTEN);
 
-      answerResume();
+      resumeSpeach();
     },
   });
 
@@ -104,14 +88,29 @@ const useConversation = ({ language, isMicActive, isLongActive, isScaryActive }:
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
 
-      answer(updatedMessages, {
-        abort: abortController.current.signal,
-        onStartSpeaking: () => setState(ConversationState.SPEAK),
-        isLong: isLongActive,
-        isScary: isScaryActive,
+      answer({
+        messages: updatedMessages,
+        options: {
+          isLong: isLongActive,
+          isScary: isScaryActive,
+        },
+        events: {
+          abort: abortController.current.signal,
+          onStartSpeaking: () => setState(ConversationState.SPEAK),
+          onEndSpeaking: () => {
+            console.debug("ANSWER: Answer ended");
+
+            setIsAnswering(false);
+            setState(ConversationState.LISTEN);
+
+            if (browserType === BrowserType.FIREFOX && isMicActive) {
+              startListen();
+            }
+          },
+        },
       });
     },
-    [answer, isLongActive, isScaryActive, messages]
+    [answer, browserType, isLongActive, isMicActive, isScaryActive, messages, startListen]
   );
 
   // Transcription

@@ -1,17 +1,19 @@
 import { MessageWithRole } from "@/frontend/conversation/types";
-import { AnswerService } from "../../base";
+import { ChatAndSpeakService } from "../../base";
 
 import OpenAI from "openai";
 import pino from "pino";
-import { StreamCombiner } from "@/backend/answer/utils/streamCombiner";
+import { StreamCombiner } from "@/backend/chatAndSpeak/utils/streamCombiner";
 import { Readable } from "stream";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
-import { AnswerOptions } from "@/backend/answer/types";
+import { AnswerOptions, PhraseToSay } from "@/backend/chatAndSpeak/types";
+import { PHRASES } from "@/backend/chatAndSpeak/utils/phrases";
 
 const logger = pino();
 
-export class ChatGPTAnswerService extends AnswerService {
+export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
   private readonly openai: OpenAI;
+  private readonly voice: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer" = "echo";
 
   constructor() {
     super();
@@ -28,7 +30,7 @@ export class ChatGPTAnswerService extends AnswerService {
 
     const speechResponse = await this.openai.audio.speech.create({
       model: "tts-1",
-      voice: "echo",
+      voice: this.voice,
       input: sentence,
       response_format: "pcm",
     });
@@ -112,5 +114,36 @@ export class ChatGPTAnswerService extends AnswerService {
     })();
 
     return resultStream;
+  }
+
+  async say(phrase: PhraseToSay, language: string): Promise<Readable> {
+    // Prepare the messages for the OpenAI API
+    const messagesOpenAIFormat = [
+      {
+        role: "system",
+        content: `Repeat the exact words from the user transalated in the language with code "${language}"`,
+      },
+      { role: "user", content: PHRASES.get(phrase) },
+    ] as Array<ChatCompletionMessageParam>;
+
+    // Get the response from the OpenAI API LLM
+    logger.info("Requesting OpenAI text response");
+    const textResponse = await this.openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: messagesOpenAIFormat,
+      stream: false,
+      max_tokens: 4096,
+    });
+    logger.info("Text response streaming started");
+
+    // Stream the response from the Speech API
+    const speechResponse = await this.openai.audio.speech.create({
+      model: "tts-1",
+      voice: this.voice,
+      input: textResponse.choices[0]?.message?.content || "",
+      response_format: "pcm",
+    });
+
+    return speechResponse.body as unknown as Readable;
   }
 }

@@ -1,8 +1,8 @@
-import { ChatGPTAnswerService } from "../service/sepcific/chatgpt";
+import { ChatGPTChatAndSpeakService } from "../service/sepcific/chatgpt";
 import { Readable } from "stream";
 
-export const getAnswerService = () => {
-  return new ChatGPTAnswerService();
+export const getChatAndSpeakService = () => {
+  return new ChatGPTChatAndSpeakService();
 };
 
 export const asyncIterableToReadableStream = <T>(asyncIterable: AsyncIterable<T>): ReadableStream<T> => {

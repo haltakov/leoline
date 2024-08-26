@@ -1,9 +1,9 @@
-import { AnswerOptions } from "@/backend/answer/types";
-import { convertStreamToWeb, getAnswerService } from "@/backend/answer/utils";
+import { AnswerOptions } from "@/backend/chatAndSpeak/types";
+import { convertStreamToWeb, getChatAndSpeakService } from "@/backend/chatAndSpeak/utils";
 import { MessageWithRole } from "@/frontend/conversation/types";
 import { NextResponse, NextRequest } from "next/server";
 
-const answerService = getAnswerService();
+const chatAndSpeakServiceService = getChatAndSpeakService();
 
 export async function POST(request: NextRequest) {
   // Parse the request and get the messages
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   if (!messages) return new NextResponse("Messages not provided", { status: 400 });
 
   // Return the stream from the answer service
-  const nodejsReadable = await answerService.answer(messages, options);
+  const nodejsReadable = await chatAndSpeakServiceService.answer(messages, options);
   const webReadableStream = convertStreamToWeb(nodejsReadable);
   return new Response(webReadableStream, {
     status: 200,
