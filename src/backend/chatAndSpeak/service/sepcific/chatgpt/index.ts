@@ -8,6 +8,7 @@ import { Readable } from "stream";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { AnswerOptions, PhraseToSay } from "@/backend/chatAndSpeak/types";
 import { PHRASES } from "@/backend/chatAndSpeak/utils/phrases";
+import { Stream } from "openai/streaming.mjs";
 
 const logger = pino();
 
@@ -25,7 +26,7 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     });
   }
 
-  private async processSentence(sentence: string, streamCombiner: StreamCombiner): Promise<void> {
+  private async speakOutSentence(sentence: string, streamCombiner: StreamCombiner): Promise<void> {
     if (!sentence) return;
 
     const speechResponse = await this.openai.audio.speech.create({
@@ -41,7 +42,41 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     }
   }
 
-  private getSystemMessage(options?: AnswerOptions): string {
+  private async speakOutTextStream(
+    textStream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
+    ausioStreamCombiner: StreamCombiner,
+    shouldEndStream: boolean
+  ) {
+    let responseText = "";
+    let currentSentence = "";
+
+    for await (const chunk of textStream) {
+      const chunkContent = chunk.choices[0]?.delta?.content || "";
+      currentSentence += chunkContent;
+
+      if (
+        currentSentence.length > 100 &&
+        (chunkContent.includes(".") || chunkContent.includes("!") || chunkContent.includes("?"))
+      ) {
+        logger.info(`Processing sentence: ${currentSentence}`);
+
+        await this.speakOutSentence(currentSentence, ausioStreamCombiner);
+
+        responseText += currentSentence;
+        currentSentence = "";
+      }
+    }
+
+    // Process the last sentence
+    await this.speakOutSentence(currentSentence, ausioStreamCombiner);
+    responseText += currentSentence;
+
+    if (shouldEndStream) ausioStreamCombiner.end();
+
+    return responseText;
+  }
+
+  private getSystemMessage({ isScary, chaptersCount }: AnswerOptions): string {
     const defaultMessage =
       "You are an asistant called Leoline. Your job is to tell stories to kids. If asked for a story topic, directly tell the story. If asked soemthing else you can give a short answer. Avoid complex words and phrases.";
 
@@ -49,23 +84,26 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
 
     // Scary mode
     messages.push(
-      options?.isScary
+      isScary
         ? "Tell scary stories if the user asks for it."
         : "Make sure stories are not scary and suitable for children."
     );
 
-    // Long mode
-    if (options?.isLong) {
-      messages.push("Make the story longer by creating 3 dedicated chapters.");
-    }
+    // Chapters count
+    if (chaptersCount > 1)
+      messages.push(
+        `Talk to the user until they provide a topic suitable for a story. Once you have a proper topic, reply first with the message "#CHAPTERS#" and then generate a short outline for a story with ${chaptersCount} chapters`
+      );
 
     return messages.join(" ");
   }
 
-  async answer(messages: MessageWithRole[], options?: AnswerOptions): Promise<Readable> {
+  async answer(messages: MessageWithRole[], options: AnswerOptions): Promise<Readable> {
+    // Log the request
+    logger.info(`Answering the question: "${messages[messages.length - 1].text}" (${JSON.stringify(options)})`);
+
     // Get the result stream
     const streamCombiner = new StreamCombiner();
-    const resultStream = streamCombiner.getCombinedStream();
 
     // Prepare the messages for the OpenAI API
     const messagesOpenAIFormat = [
@@ -89,34 +127,70 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     });
     logger.info("Text response streaming started");
 
-    // Process the response sentence by sentence
-    (async () => {
-      let currentSentence = "";
-      for await (const chunk of textResponseStream) {
-        const chunkContent = chunk.choices[0]?.delta?.content || "";
-        currentSentence += chunkContent;
+    // Check the response for Chapter Mode
+    let initialText = "";
+    let isChapterMode = false;
 
-        if (
-          currentSentence.length > 100 &&
-          (chunkContent.includes(".") || chunkContent.includes("!") || chunkContent.includes("?"))
-        ) {
-          logger.info(`Processing sentence: ${currentSentence}`);
-          await this.processSentence(currentSentence, streamCombiner);
-          currentSentence = "";
+    const [checkContentTypeStream, contentStream] = textResponseStream.tee();
+
+    let tempMessage = "";
+    for await (const chunk of checkContentTypeStream) {
+      const chunkContent = chunk.choices[0]?.delta?.content || "";
+      tempMessage += chunkContent;
+
+      if (tempMessage.length > 10) {
+        if (tempMessage.includes("#CHAPTERS#")) {
+          isChapterMode = true;
         }
+
+        break;
       }
+    }
 
-      // Process the last sentence
-      await this.processSentence(currentSentence, streamCombiner);
+    logger.info(`Chapter mode: ${isChapterMode ? "ACTIVE" : "INACTIVE"}`);
 
-      // End the stream output
-      streamCombiner.end();
-    })();
+    if (!isChapterMode) {
+      // Process the text stream to audio
+      (async () => this.speakOutTextStream(contentStream, streamCombiner, true))();
+    } else {
+      // Aggregate the chapter message
+      logger.info(`Prepating the story outline`);
+      let chapterMessage = initialText;
+      for await (const chunk of contentStream) {
+        const chunkContent = chunk.choices[0]?.delta?.content || "";
+        chapterMessage += chunkContent;
+      }
+      logger.info(`Story outline: ${chapterMessage}`);
 
-    return resultStream;
+      // Generate each chapter and process each one to audio
+      (async () => {
+        for (let i = 1; i <= options.chaptersCount; i++) {
+          logger.info(`Requesting OpenAI text response for chapter ${i}`);
+          const chapterTextResponseStream = await this.openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+              ...messagesOpenAIFormat,
+              { role: "assistant", content: chapterMessage },
+              { role: "user", content: `Output the text for chapter ${i}` },
+            ],
+            stream: true,
+            max_tokens: 4096,
+          });
+          logger.info("Text response streaming started");
+
+          // Process the text stream to audio
+          await this.speakOutTextStream(chapterTextResponseStream, streamCombiner, i === options.chaptersCount);
+        }
+      })();
+    }
+
+    return streamCombiner.getCombinedStream();
   }
 
   async say(phrase: PhraseToSay, language: string): Promise<Readable> {
+    // Get the result stream
+    const streamCombiner = new StreamCombiner();
+
     // Prepare the messages for the OpenAI API
     const messagesOpenAIFormat = [
       {
@@ -136,14 +210,8 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     });
     logger.info("Text response streaming started");
 
-    // Stream the response from the Speech API
-    const speechResponse = await this.openai.audio.speech.create({
-      model: "tts-1",
-      voice: this.voice,
-      input: textResponse.choices[0]?.message?.content || "",
-      response_format: "pcm",
-    });
+    await this.speakOutSentence(textResponse.choices[0].message.content || "", streamCombiner);
 
-    return speechResponse.body as unknown as Readable;
+    return streamCombiner.getCombinedStream();
   }
 }

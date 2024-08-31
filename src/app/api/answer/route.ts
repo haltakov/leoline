@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
   const options: AnswerOptions = parsedRequest.options;
 
   if (!messages) return new NextResponse("Messages not provided", { status: 400 });
+  if (!options || !options.chaptersCount) return new NextResponse("Options not provided", { status: 400 });
 
   // Return the stream from the answer service
   const nodejsReadable = await chatAndSpeakServiceService.answer(messages, options);

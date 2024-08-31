@@ -8,11 +8,11 @@ import { PhraseToSay } from "@/backend/chatAndSpeak/types";
 
 export interface Props {
   language: string;
-  isLongActive: boolean;
   isScaryActive: boolean;
+  chaptersCount: number;
 }
 
-const useConversation = ({ language, isLongActive, isScaryActive }: Props) => {
+const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
   // Conversation State
   const [state, setState] = useState<ConversationState>(ConversationState.INITIALIZE);
 
@@ -57,7 +57,7 @@ const useConversation = ({ language, isLongActive, isScaryActive }: Props) => {
       answer({
         messages: updatedMessages,
         options: {
-          isLong: isLongActive,
+          chaptersCount,
           isScary: isScaryActive,
         },
         events: {
@@ -70,7 +70,7 @@ const useConversation = ({ language, isLongActive, isScaryActive }: Props) => {
         },
       });
     },
-    [answer, isLongActive, isScaryActive, messages]
+    [answer, chaptersCount, isScaryActive, messages]
   );
 
   // Transcription
