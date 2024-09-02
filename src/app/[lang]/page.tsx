@@ -15,12 +15,16 @@ interface Props {
 }
 
 const Home = ({ params: { lang } }: Props) => {
-  const noSleep = new NoSleep();
-
   const [chaptersCount, setChaptersCount] = useState(1);
   const [isScaryActive, setIsScaryActive] = useState(false);
 
   const { state, activate, deactivate } = useConversation({ language: lang, isScaryActive, chaptersCount });
+
+  const [noSleep, setNoSleep] = useState<NoSleep | undefined>(undefined);
+
+  useEffect(() => {
+    setNoSleep(new NoSleep());
+  }, []);
 
   useEffect(() => {
     const options = JSON.parse(localStorage.getItem("options") || "{}");
@@ -30,12 +34,12 @@ const Home = ({ params: { lang } }: Props) => {
   }, []);
 
   const handleActivate = () => {
-    if (!noSleep.isEnabled) noSleep.enable();
+    if (noSleep && !noSleep.isEnabled) noSleep.enable();
     activate();
   };
 
   const handleDeactivate = () => {
-    if (!noSleep.isEnabled) noSleep.enable();
+    if (noSleep && !noSleep?.isEnabled) noSleep.enable();
     deactivate();
   };
 

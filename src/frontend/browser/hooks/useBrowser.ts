@@ -4,7 +4,7 @@ import { BrowserType } from "../types";
 
 const useBrowser = () => {
   // Check if running in browser
-  if (typeof window === "undefined") return BrowserType.UNKNOWN;
+  if (typeof window === "undefined" || !navigator) return BrowserType.UNKNOWN;
 
   // Detect Firefox
   if (navigator.userAgent.includes("Firefox")) return BrowserType.FIREFOX;
