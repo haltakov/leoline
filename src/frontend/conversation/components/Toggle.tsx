@@ -2,6 +2,8 @@ import { useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
 
+const ICON_SIZE = 48;
+
 export interface Props {
   states: { value: string; image: string }[];
   initialState: string;
@@ -18,17 +20,38 @@ const Toggle = ({ states, initialState, onStateChange }: Props) => {
   };
 
   return (
-    <button
-      className={clsx(
-        "z-40 w-20 h-20 rounded-full shadow-xl",
-        "flex justify-center items-center",
-        "bg-gradient-to-b from-orange-200 to-orange-300",
-        "active:from-orange-300 active:to-orange-500 active:scale-110"
-      )}
-      onClick={handleClick}
-    >
-      <Image src={states[stateIndex].image} width={48} height={48} alt={states[stateIndex].value} />
-    </button>
+    <>
+      <button
+        className={clsx(
+          `z-40 rounded-full shadow-xl p-3`,
+          "flex justify-center items-center",
+          "bg-gradient-to-b from-orange-200 to-orange-300",
+          "active:from-orange-300 active:to-orange-500 active:scale-110"
+        )}
+        onClick={handleClick}
+      >
+        <Image
+          src={states[stateIndex].image}
+          width={ICON_SIZE}
+          height={ICON_SIZE}
+          alt={states[stateIndex].value}
+          priority
+        />
+      </button>
+
+      {/* Preload all images */}
+      {states.map((state) => (
+        <Image
+          className="hidden"
+          key={state.value}
+          src={state.image}
+          width={ICON_SIZE}
+          height={ICON_SIZE}
+          alt={state.value}
+          priority
+        />
+      ))}
+    </>
   );
 };
 
