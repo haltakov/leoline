@@ -8,6 +8,12 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Leoline",
   description: "Create childern stories with Leoline",
+  icons: {
+    icon: [
+      { rel: "icon", url: "/icons/favicon.ico", sizes: "any" },
+      { rel: "apple-touch-icon", url: "/icons/apple-touch-icon.png" },
+    ],
+  },
 };
 
 export default function RootLayout({
