@@ -210,7 +210,11 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     });
     logger.info("Text response streaming started");
 
-    await this.speakOutSentence(textResponse.choices[0].message.content || "", streamCombiner);
+    (async () => {
+      await this.speakOutSentence(textResponse.choices[0].message.content || "", streamCombiner);
+
+      streamCombiner.end();
+    })();
 
     return streamCombiner.getCombinedStream();
   }
