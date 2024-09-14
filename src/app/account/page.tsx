@@ -1,6 +1,6 @@
 import Account from "@/frontend/account/components/Account";
 import Login from "@/frontend/account/components/Login";
-import { signIn, auth, signOut } from "@/frontend/auth";
+import { signIn, auth, signOut } from "@/auth";
 import BackgroundBlur from "@/frontend/common/components/BackgroundBlur";
 
 const AccountPage = async () => {

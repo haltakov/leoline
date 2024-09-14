@@ -19,7 +19,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Authenticator Authenticator[]
+  chatUserId String
+  chatUser   ChatUser @relation(fields: [chatUserId], references: [id])
 }
 
 model Account {
@@ -61,17 +62,48 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
-model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
+model AnonymousUser {
+  id String @id @default(cuid())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  localIdentifier String @unique
+  ipAddressHash   String @unique
 
-  @@id([userId, credentialID])
+  ipAddressLocation String?
+
+  chatUserId String
+  chatUser   ChatUser @relation(fields: [chatUserId], references: [id])
+}
+
+model ChatUser {
+  id String @id @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Story Story[]
+
+  User          User[]
+  AnonymousUser AnonymousUser[]
+}
+
+model Story {
+  id String @id @default(cuid())
+
+  prompt   String
+  chapters Int
+  isScary  Boolean
+  language String
+
+  outline    String?
+  text       String?
+  tokensUsed Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isCompleted Boolean   @default(false)
+  abortedAt   DateTime?
+
+  chatUserId String
+  chatUser   ChatUser @relation(fields: [chatUserId], references: [id])
 }

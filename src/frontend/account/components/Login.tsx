@@ -1,4 +1,4 @@
-import { signIn } from "@/frontend/auth";
+import { signIn } from "@/auth";
 import Button from "./utils/Button";
 import Heading from "./utils/Heading";
 

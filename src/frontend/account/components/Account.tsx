@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/frontend/auth";
+import { auth, signOut } from "@/auth";
 import Button from "./utils/Button";
 import Heading from "./utils/Heading";
 
