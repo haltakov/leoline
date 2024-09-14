@@ -1,12 +1,13 @@
 "use client";
 
 import LeolineVideo from "@/frontend/conversation/components/LeolineVideo";
-import Loading from "@/frontend/conversation/components/Loading";
+import Loading from "@/frontend/common/components/Loading";
 import useConversation from "@/frontend/conversation/hooks/useConversation";
 import { ConversationState } from "@/frontend/conversation/types";
 import { useEffect, useState } from "react";
 import Toggle from "@/frontend/conversation/components/Toggle";
 import NoSleep from "nosleep.js";
+import BackgroundBlur from "@/frontend/common/components/BackgroundBlur";
 
 interface Props {
   params: {
@@ -44,7 +45,12 @@ const Home = ({ params: { lang } }: Props) => {
   };
 
   if (state === ConversationState.INITIALIZE) {
-    return <Loading />;
+    return (
+      <>
+        <BackgroundBlur />
+        <Loading />
+      </>
+    );
   }
 
   if (state === ConversationState.ERROR) {
@@ -52,9 +58,7 @@ const Home = ({ params: { lang } }: Props) => {
   }
 
   return (
-    <div className="min-h-screen overflow-hidden">
-      <div className="z-10 bg-[url('/img/leoline_background.jpg')] bg-cover top-[-103px] md:top-[-156px] xl:top-[-208px] w-[1000px] h-[1000px] md:w-[1500px] md:h-[1500px] xl:w-[2000px] xl:h-[2000px] absolute left-1/2 transform -translate-x-1/2 overflow-hidden"></div>
-
+    <>
       <LeolineVideo
         active={state === ConversationState.WAIT}
         src="/video/leoline_waiting_1.mp4"
@@ -104,7 +108,7 @@ const Home = ({ params: { lang } }: Props) => {
           }}
         />
       </div>
-    </div>
+    </>
   );
 };
 

@@ -4,8 +4,8 @@ import Heading from "./utils/Heading";
 
 const Login = () => {
   return (
-    <div className="space-y-12">
-      <Heading>Create an account or Sign in</Heading>
+    <div className="space-y-20">
+      <Heading>Create an account or sign in</Heading>
 
       <div className="flex flex-col items-center">
         <form
