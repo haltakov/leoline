@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "yarn schema && next dev",
+    "build": "yarn schema && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "schema": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.2",
