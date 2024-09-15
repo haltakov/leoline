@@ -25,7 +25,7 @@ const Login = () => {
             await signIn("resend", formData);
           }}
         >
-          <input className="border-2 px-4 py-2 rounded-md" type="email" name="email" placeholder="Email" />
+          <input className="border-2 px-4 py-2 rounded-md" type="email" name="email" placeholder="Email" required />
           <Button>Sign in with email</Button>
         </form>
       </div>
