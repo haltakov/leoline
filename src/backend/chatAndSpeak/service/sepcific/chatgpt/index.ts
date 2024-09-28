@@ -264,9 +264,6 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
       messages: messagesOpenAIFormat,
       stream: false,
       max_tokens: 4096,
-      stream_options: {
-        include_usage: true,
-      },
     });
     logger.info("Text response streaming started");
 

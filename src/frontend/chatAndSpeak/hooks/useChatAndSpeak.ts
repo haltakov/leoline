@@ -1,18 +1,21 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { sleep } from "@/utils";
 import { AnswerParams, ChatAndSpeakEvents, SayParams } from "../types";
 import { useUserContext } from "@/frontend/user/context/UserContext";
+import axios from "axios";
 
 const useChatAndSpeak = () => {
   const audioContext = useRef<AudioContext | null>(null);
   const source = useRef<AudioBufferSourceNode | null>(null);
 
+  const [storyId, setStoryId] = useState<string | undefined>(undefined);
+
   const { xuid } = useUserContext();
 
   const processSpeachStream = useCallback(
-    async (stream: ReadableStreamDefaultReader<Uint8Array>, events?: ChatAndSpeakEvents) => {
+    async (stream: ReadableStreamDefaultReader<Uint8Array>, events?: ChatAndSpeakEvents, storyId?: string) => {
       audioContext.current = new AudioContext({ sampleRate: 24000 });
       let nextStartTime = audioContext.current.currentTime;
 
@@ -57,6 +60,9 @@ const useChatAndSpeak = () => {
 
         if (result.done) {
           source.current.onended = () => {
+            if (storyId) {
+              axios.post("/api/story/complete", { storyId }, { headers: { xuid } });
+            }
             if (events?.onEndSpeaking) {
               events.onEndSpeaking();
             }
@@ -64,7 +70,7 @@ const useChatAndSpeak = () => {
         }
       }
     },
-    []
+    [xuid]
   );
 
   const answer = useCallback(
@@ -85,8 +91,13 @@ const useChatAndSpeak = () => {
           return;
         }
 
+        const storyId = response.headers.get("story-id") || undefined;
+        if (storyId) {
+          setStoryId(storyId);
+        }
+
         const reader = response.body.getReader();
-        processSpeachStream(reader, events);
+        await processSpeachStream(reader, events, storyId);
       } catch (error) {
         if (events?.abort?.aborted) {
           audioContext.current?.close();
@@ -123,9 +134,13 @@ const useChatAndSpeak = () => {
     [processSpeachStream, xuid]
   );
 
-  const abortSpeach = useCallback(() => {
+  const abortSpeach = useCallback(async () => {
     audioContext.current?.close();
-  }, []);
+
+    if (storyId) {
+      await axios.post("/api/story/abort", { storyId }, { headers: { xuid } });
+    }
+  }, [storyId, xuid]);
 
   const pauseSpeach = useCallback(() => {
     audioContext.current?.suspend();
