@@ -10,7 +10,7 @@ import pino from "pino";
 const logger = pino();
 
 export const getCurrentUser = async (request: NextRequest, auth: Session | null): Promise<UserPublic> => {
-  let chatUser: ChatUser | undefined;
+  let chatUser: ChatUser | undefined | null;
   let isAnonymous = true;
 
   // If the user is authenticated, get the chat user from it

@@ -1205,6 +1205,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cuid@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "cuid@npm:3.0.0"
+  checksum: 10c0/e1cac04b8df3222fa612ac23f5ad1839f31ec58778a1cfcb23231224f3fe63cc0bb1747188f349bc93f87a74f574ace31ddcb3e60f5eb4543ff5c9e9458a0168
+  languageName: node
+  linkType: hard
+
 "damerau-levenshtein@npm:^1.0.8":
   version: 1.0.8
   resolution: "damerau-levenshtein@npm:1.0.8"
@@ -2881,6 +2888,7 @@ __metadata:
     "@types/react": "npm:^18"
     "@types/react-dom": "npm:^18"
     clsx: "npm:^2.1.1"
+    cuid: "npm:^3.0.0"
     eslint: "npm:^8"
     eslint-config-next: "npm:14.2.4"
     next: "npm:14.2.4"
