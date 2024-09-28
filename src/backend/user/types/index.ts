@@ -4,6 +4,7 @@ import { AnonymousUser, ChatUser } from "@prisma/client";
 
 export interface UserPublic {
   email?: string;
+  name?: string;
   isActive: boolean;
 }
 

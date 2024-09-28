@@ -6,6 +6,7 @@ import { sha256 } from "@/backend/user/utils";
 import { MAX_ANONYMOUS_STORIES } from "@/backend/user/const";
 import { Session } from "next-auth";
 import pino from "pino";
+import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 
 const logger = pino();
 
@@ -30,12 +31,28 @@ export const getCurrentUser = async (request: NextRequest, auth: Session | null)
     logger.info("User: Found authenticated user");
   }
 
+  // Get the ananonymous user
+  const annonymousUser = await getAnnonymousUser(request);
+
   // If the user is not authenticated, get the annonymous user and the corresponding chat user
   if (!chatUser) {
-    const annonymousUser = await getAnnonymousUser(request);
     chatUser = annonymousUser.chatUser;
 
     logger.info("User: Found anonymous user");
+
+    // If the user is logged in, but oesn't have a char user, asign the one from the anonymous user
+    if (auth?.user?.email) {
+      logger.info("User: Updating user chat user for the authenticated user");
+
+      await prisma.user.update({
+        where: {
+          email: auth.user.email,
+        },
+        data: {
+          chatUserId: chatUser.id,
+        },
+      });
+    }
   }
 
   // Raise an error if the chat user is not found (should never happen)
@@ -47,6 +64,7 @@ export const getCurrentUser = async (request: NextRequest, auth: Session | null)
 
   return {
     email: auth?.user?.email || undefined,
+    name: annonymousUser?.name || undefined,
     isActive,
   } as UserPublic;
 };
@@ -63,7 +81,7 @@ export const getAnnonymousUser = async (request: NextRequest): Promise<Anonymous
 
   const ipAddressHash = sha256(ipAddress);
 
-  logger.info("User: Getting anonymous user by:", { localIdentifier, ipAddressHash });
+  logger.info(`User: Getting anonymous user by: ${JSON.stringify({ localIdentifier, ipAddressHash })}`);
 
   // Try to fint the user by local identifier or ip address
   let annonymousUser: AnonymousUserWithChatUser | null = await prisma.anonymousUser.findFirst({
@@ -94,6 +112,9 @@ export const getAnnonymousUser = async (request: NextRequest): Promise<Anonymous
     // Create the anonymous user
     annonymousUser = await prisma.anonymousUser.create({
       data: {
+        name: uniqueNamesGenerator({
+          dictionaries: [adjectives, colors, animals],
+        }),
         localIdentifier,
         ipAddressHash,
         ipAddressLocation,

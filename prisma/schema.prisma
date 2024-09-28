@@ -65,6 +65,7 @@ model VerificationToken {
 model AnonymousUser {
   id String @id @default(cuid())
 
+  name            String
   localIdentifier String @unique
   ipAddressHash   String @unique
 
