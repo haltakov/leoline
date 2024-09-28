@@ -9,6 +9,9 @@ import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { AnswerOptions, PhraseToSay } from "@/backend/chatAndSpeak/types";
 import { PHRASES } from "@/backend/chatAndSpeak/utils/phrases";
 import { Stream } from "openai/streaming.mjs";
+import prisma from "@/backend/prisma";
+import { AnswerWithStats } from "./types";
+import { CompletionUsage } from "openai/src/resources/completions.js";
 
 const logger = pino();
 
@@ -46,13 +49,16 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     textStream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
     ausioStreamCombiner: StreamCombiner,
     shouldEndStream: boolean
-  ) {
+  ): Promise<AnswerWithStats> {
     let responseText = "";
     let currentSentence = "";
+    let usageStats: CompletionUsage | undefined = undefined;
 
     for await (const chunk of textStream) {
       const chunkContent = chunk.choices[0]?.delta?.content || "";
       currentSentence += chunkContent;
+
+      if (chunk.usage) usageStats = chunk.usage;
 
       if (
         currentSentence.length > 100 &&
@@ -73,7 +79,7 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
 
     if (shouldEndStream) ausioStreamCombiner.end();
 
-    return responseText;
+    return { text: responseText, tokensUsed: usageStats?.completion_tokens || 0 };
   }
 
   private getSystemMessage({ isScary, chaptersCount }: AnswerOptions): string {
@@ -98,7 +104,7 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
     return messages.join(" ");
   }
 
-  async answer(messages: MessageWithRole[], options: AnswerOptions): Promise<Readable> {
+  async answer(messages: MessageWithRole[], options: AnswerOptions, storyId: string): Promise<Readable> {
     // Log the request
     logger.info(`Answering the question: "${messages[messages.length - 1].text}" (${JSON.stringify(options)})`);
 
@@ -124,6 +130,9 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
       messages: messagesOpenAIFormat,
       stream: true,
       max_tokens: 4096,
+      stream_options: {
+        include_usage: true,
+      },
     });
     logger.info("Text response streaming started");
 
@@ -151,19 +160,47 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
 
     if (!isChapterMode) {
       // Process the text stream to audio
-      (async () => this.speakOutTextStream(contentStream, streamCombiner, true))();
+      (async () => {
+        const { text, tokensUsed } = await this.speakOutTextStream(contentStream, streamCombiner, true);
+
+        // Update the story with the text in the DB
+        await prisma.story.update({
+          where: {
+            id: storyId,
+          },
+          data: {
+            text,
+            tokensUsed,
+          },
+        });
+      })();
     } else {
+      let storyTokensUsed = 0;
       // Aggregate the chapter message
       logger.info(`Prepating the story outline`);
       let chapterMessage = initialText;
       for await (const chunk of contentStream) {
         const chunkContent = chunk.choices[0]?.delta?.content || "";
         chapterMessage += chunkContent;
+
+        if (chunk.usage) storyTokensUsed = chunk.usage.completion_tokens || 0;
       }
       logger.info(`Story outline: ${chapterMessage}`);
 
+      // Update the story with the outline in the DB
+      await prisma.story.update({
+        where: {
+          id: storyId,
+        },
+        data: {
+          outline: chapterMessage,
+        },
+      });
+
       // Generate each chapter and process each one to audio
       (async () => {
+        let storyText = "";
+
         for (let i = 1; i <= options.chaptersCount; i++) {
           logger.info(`Requesting OpenAI text response for chapter ${i}`);
           const chapterTextResponseStream = await this.openai.chat.completions.create({
@@ -175,12 +212,32 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
             ],
             stream: true,
             max_tokens: 4096,
+            stream_options: {
+              include_usage: true,
+            },
           });
           logger.info("Text response streaming started");
 
           // Process the text stream to audio
-          await this.speakOutTextStream(chapterTextResponseStream, streamCombiner, i === options.chaptersCount);
+          const { text, tokensUsed } = await this.speakOutTextStream(
+            chapterTextResponseStream,
+            streamCombiner,
+            i === options.chaptersCount
+          );
+          storyText += text;
+          storyTokensUsed += tokensUsed;
         }
+
+        // Update the story with the text in the DB
+        await prisma.story.update({
+          where: {
+            id: storyId,
+          },
+          data: {
+            text: storyText,
+            tokensUsed: storyTokensUsed,
+          },
+        });
       })();
     }
 
@@ -207,6 +264,9 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
       messages: messagesOpenAIFormat,
       stream: false,
       max_tokens: 4096,
+      stream_options: {
+        include_usage: true,
+      },
     });
     logger.info("Text response streaming started");
 

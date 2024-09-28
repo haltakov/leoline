@@ -58,7 +58,7 @@ const Home = ({ params: { lang } }: Props) => {
   }
 
   return (
-    <>
+    <div className="relative h-screen">
       <LeolineVideo
         active={state === ConversationState.WAIT}
         src="/video/leoline_waiting_1.mp4"
@@ -108,7 +108,7 @@ const Home = ({ params: { lang } }: Props) => {
           }}
         />
       </div>
-    </>
+    </div>
   );
 };
 

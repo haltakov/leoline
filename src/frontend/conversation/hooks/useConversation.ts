@@ -59,6 +59,7 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
         options: {
           chaptersCount,
           isScary: isScaryActive,
+          language,
         },
         events: {
           abort: abortController.current.signal,
@@ -70,7 +71,7 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
         },
       });
     },
-    [answer, chaptersCount, isScaryActive, messages]
+    [answer, chaptersCount, isScaryActive, language, messages]
   );
 
   // Transcription

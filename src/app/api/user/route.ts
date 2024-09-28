@@ -8,8 +8,8 @@ const logger = pino();
 
 export const GET = auth(async function GET(request: NextAuthRequest) {
   try {
-    const userPublic = await getCurrentUser(request, request.auth);
-    return new NextResponse(JSON.stringify(userPublic), { status: 200 });
+    const { user } = await getCurrentUser(request, request.auth);
+    return new NextResponse(JSON.stringify(user), { status: 200 });
   } catch (error) {
     logger.error(error);
     return new NextResponse("Cannot get the current user", { status: 400 });

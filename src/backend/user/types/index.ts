@@ -8,6 +8,11 @@ export interface UserPublic {
   isActive: boolean;
 }
 
+export interface GetCurrentUserResponse {
+  user: UserPublic;
+  chatUser: ChatUser;
+}
+
 export interface AnonymousUserWithChatUser extends AnonymousUser {
   chatUser: ChatUser;
 }

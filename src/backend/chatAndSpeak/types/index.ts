@@ -1,6 +1,7 @@
 export interface AnswerOptions {
   isScary: boolean;
   chaptersCount: number;
+  language: string;
 }
 
 export enum PhraseToSay {

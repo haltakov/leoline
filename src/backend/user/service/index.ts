@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { AnonymousUserWithChatUser, UserPublic } from "../types";
+import { AnonymousUserWithChatUser, GetCurrentUserResponse, UserPublic } from "../types";
 import prisma from "@/backend/prisma";
 import { ChatUser } from "@prisma/client";
 import { sha256 } from "@/backend/user/utils";
@@ -10,7 +10,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-
 
 const logger = pino();
 
-export const getCurrentUser = async (request: NextRequest, auth: Session | null): Promise<UserPublic> => {
+export const getCurrentUser = async (request: NextRequest, auth: Session | null): Promise<GetCurrentUserResponse> => {
   let chatUser: ChatUser | undefined | null;
   let isAnonymous = true;
 
@@ -63,10 +63,13 @@ export const getCurrentUser = async (request: NextRequest, auth: Session | null)
   const isActive = await checkUserIsActive(isAnonymous, chatUser);
 
   return {
-    email: auth?.user?.email || undefined,
-    name: annonymousUser?.name || undefined,
-    isActive,
-  } as UserPublic;
+    user: {
+      email: auth?.user?.email || undefined,
+      name: annonymousUser?.name || undefined,
+      isActive,
+    },
+    chatUser,
+  };
 };
 
 export const getAnnonymousUser = async (request: NextRequest): Promise<AnonymousUserWithChatUser> => {
