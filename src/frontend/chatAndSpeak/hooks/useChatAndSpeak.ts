@@ -3,10 +3,13 @@
 import { useCallback, useRef } from "react";
 import { sleep } from "@/utils";
 import { AnswerParams, ChatAndSpeakEvents, SayParams } from "../types";
+import { useUserContext } from "@/frontend/user/context/UserContext";
 
 const useChatAndSpeak = () => {
   const audioContext = useRef<AudioContext | null>(null);
   const source = useRef<AudioBufferSourceNode | null>(null);
+
+  const { xuid } = useUserContext();
 
   const processSpeachStream = useCallback(
     async (stream: ReadableStreamDefaultReader<Uint8Array>, events?: ChatAndSpeakEvents) => {
@@ -73,6 +76,7 @@ const useChatAndSpeak = () => {
           method: "POST",
           body: JSON.stringify({ messages, options: { ...options, abort: undefined } }),
           signal: events?.abort,
+          headers: { xuid },
         });
 
         if (!response.ok || !response.body) {
@@ -89,7 +93,7 @@ const useChatAndSpeak = () => {
         }
       }
     },
-    [processSpeachStream]
+    [processSpeachStream, xuid]
   );
 
   const say = useCallback(
@@ -99,6 +103,7 @@ const useChatAndSpeak = () => {
           method: "POST",
           body: JSON.stringify({ phrase, language }),
           signal: events?.abort,
+          headers: { xuid },
         });
 
         if (!response.ok || !response.body) {
@@ -115,7 +120,7 @@ const useChatAndSpeak = () => {
         }
       }
     },
-    [processSpeachStream]
+    [processSpeachStream, xuid]
   );
 
   const abortSpeach = useCallback(() => {

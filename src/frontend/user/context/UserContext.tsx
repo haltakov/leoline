@@ -2,7 +2,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import useUser from "../hooks/useUser";
 
 interface UserContextType {
-  xuid: string | null;
+  xuid: string;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
