@@ -81,6 +81,12 @@ model ChatUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  stripeCustomerId            String?
+  stripeSubscriptionId        String?
+  stripeSubscriptionStatus    String?
+  stripeSubscriptionPlanId    String?
+  stripeSubscriptionCreatedAt DateTime?
+
   Story Story[]
 
   User          User[]
