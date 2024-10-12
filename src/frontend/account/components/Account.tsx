@@ -9,7 +9,7 @@ import { getStripeConfig } from "@/backend/stripe/config";
 const Account = async () => {
   const session = await auth();
 
-  const { monthlyPriceId } = getStripeConfig();
+  const { monthlyPriceId, yearlyPriceId } = getStripeConfig();
 
   const subscriptionActive = true;
 
@@ -36,8 +36,8 @@ const Account = async () => {
               </>
             ) : (
               <>
-                <SubscribeButton priceId={monthlyPriceId} email={session?.user?.email ?? ""} label="$10 per month" />
-                <SubscribeButton priceId={monthlyPriceId} email={session?.user?.email ?? ""} label="$100 per year" />
+                <SubscribeButton priceId={monthlyPriceId} email={session?.user?.email ?? ""} label="$9 per month" />
+                <SubscribeButton priceId={yearlyPriceId} email={session?.user?.email ?? ""} label="$90 per year" />
               </>
             )}
           </div>
