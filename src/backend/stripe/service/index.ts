@@ -1,10 +1,10 @@
 "use server";
 
-import stripe from "stripe";
-import { getStripeConfig } from "../config";
+import Stripe from "stripe";
 import { CreateCustomerPortalSessionParams, CreateStripeSessionParams } from "../types";
 import prisma from "@/backend/prisma";
 import { auth } from "@/auth";
+import { getStripeConfig } from "../config";
 
 export const createStripeSession = async ({ priceId, baseUrl }: CreateStripeSessionParams) => {
   // Get the email of the logged in user from the session
@@ -14,7 +14,7 @@ export const createStripeSession = async ({ priceId, baseUrl }: CreateStripeSess
 
   // Initialize the stripe client
   const { secretKey } = getStripeConfig();
-  const stripeClient = new stripe(secretKey);
+  const stripeClient = new Stripe(secretKey);
 
   // Create Checkout Sessions from body params.
   const stripeSession = await stripeClient.checkout.sessions.create({
@@ -49,7 +49,7 @@ export const createCustomerPortalSession = async ({ baseUrl }: CreateCustomerPor
 
   // Initialize the stripe client
   const { secretKey } = getStripeConfig();
-  const stripeClient = new stripe(secretKey);
+  const stripeClient = new Stripe(secretKey);
 
   // Create Checkout Sessions from body params.
   const stripeSession = await stripeClient.billingPortal.sessions.create({
@@ -60,16 +60,44 @@ export const createCustomerPortalSession = async ({ baseUrl }: CreateCustomerPor
   return stripeSession.url;
 };
 
+export const getStripeSubscriptionStatus = async () => {
+  const { secretKey } = getStripeConfig();
+  const stripeClient = new Stripe(secretKey);
+
+  // Get the email of the logged in user from the session
+  const session = await auth();
+  const email = session?.user?.email;
+  if (!email) throw Error("No logged in user found");
+
+  // Get the customer ID from the users email
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw Error("User not found");
+  if (!user.stripeSubscriptionId) return undefined;
+
+  // Get the current subscription status
+  if (!stripeClient.subscriptions) return undefined;
+  const subscription = await stripeClient.subscriptions.retrieve(user.stripeSubscriptionId);
+
+  // Update the subscription status in the DB if needed
+  if (user.stripeSubscriptionStatus != subscription.status) {
+    await prisma.user.update({ where: { id: user.id }, data: { stripeSubscriptionStatus: subscription.status } });
+  }
+
+  console.log("DBG:", { status: subscription.status });
+
+  return subscription.status as string;
+};
+
 export const processPayment = async (sessionId: string) => {
   const { secretKey } = getStripeConfig();
-  const stripeClient = new stripe(secretKey);
+  const stripeClient = new Stripe(secretKey);
 
   const checkoutSession = await stripeClient.checkout.sessions.retrieve(sessionId, {
     expand: ["line_items", "subscription"],
   });
 
   if (checkoutSession.payment_status === "paid" && checkoutSession.customer_email) {
-    const subscription = checkoutSession.subscription as stripe.Subscription;
+    const subscription = checkoutSession.subscription as Stripe.Subscription;
 
     const user = await prisma.user.findUnique({
       where: {

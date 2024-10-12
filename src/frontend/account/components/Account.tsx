@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "./utils/Link";
 import Button from "./utils/Button";
 import Heading from "./utils/Heading";
 import Section from "./Section";
@@ -8,23 +7,28 @@ import SubscribeButton from "@/frontend/stripe/components/SubscribeButton";
 import { getStripeConfig } from "@/backend/stripe/config";
 import { convertStripeSubscriptionStatus } from "../utils";
 import useUser from "@/frontend/user/hooks/useUser";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SubscriptionStatus } from "../types";
 import { signOut } from "next-auth/react";
 import LoadingSpinner from "@/frontend/common/components/LoadingSpinner";
 import CustomerPortalButton from "@/frontend/stripe/components/CustomerPortalButton";
+import { getStripeSubscriptionStatus } from "@/backend/stripe/service";
 
 const Account = () => {
   const { monthlyPriceId, yearlyPriceId } = getStripeConfig();
 
   const { userPublic } = useUser();
 
-  const subscriptionStatus = useMemo(
-    () => convertStripeSubscriptionStatus(userPublic?.subscriptionStatus),
-    [userPublic]
-  );
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | undefined>();
 
-  if (!userPublic) {
+  useEffect(() => {
+    (async () => {
+      const status = await getStripeSubscriptionStatus();
+      setSubscriptionStatus(convertStripeSubscriptionStatus(status));
+    })();
+  }, []);
+
+  if (!userPublic || subscriptionStatus === undefined) {
     return (
       <div className="flex justify-center items-center p-16">
         <LoadingSpinner className="text-orange-600" />
