@@ -19,6 +19,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  stripeCustomerId            String?
+  stripeSubscriptionId        String?
+  stripeSubscriptionStatus    String?
+  stripeSubscriptionPriceId   String?
+  stripeSubscriptionCreatedAt DateTime?
+
   chatUserId String?
   chatUser   ChatUser? @relation(fields: [chatUserId], references: [id])
 }
@@ -80,12 +86,6 @@ model ChatUser {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  stripeCustomerId            String?
-  stripeSubscriptionId        String?
-  stripeSubscriptionStatus    String?
-  stripeSubscriptionPlanId    String?
-  stripeSubscriptionCreatedAt DateTime?
 
   Story Story[]
 

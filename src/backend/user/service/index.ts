@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { AnonymousUserWithChatUser, GetCurrentUserResponse, UserPublic } from "../types";
+import { AnonymousUserWithChatUser, GetCurrentUserResponse, UserPublic, UserWithChatUser } from "../types";
 import prisma from "@/backend/prisma";
-import { ChatUser } from "@prisma/client";
+import { ChatUser, User } from "@prisma/client";
 import { sha256 } from "@/backend/user/utils";
 import { MAX_ANONYMOUS_STORIES } from "@/backend/user/const";
 import { Session } from "next-auth";
@@ -15,8 +15,9 @@ export const getCurrentUser = async (request: NextRequest, auth: Session | null)
   let isAnonymous = true;
 
   // If the user is authenticated, get the chat user from it
+  let user: UserWithChatUser | null = null;
   if (auth?.user?.email) {
-    const user = await prisma.user.findUnique({
+    user = await prisma.user.findUnique({
       where: {
         email: auth.user.email,
       },
@@ -66,6 +67,10 @@ export const getCurrentUser = async (request: NextRequest, auth: Session | null)
     user: {
       email: auth?.user?.email || undefined,
       name: annonymousUser?.name || undefined,
+      subscriptionStatus: user?.stripeSubscriptionStatus || undefined,
+      subscriptionPriceId: user?.stripeSubscriptionPriceId || undefined,
+      storiesCount: 0,
+      storiesLenghtSeconds: 0,
       isActive,
     },
     chatUser,

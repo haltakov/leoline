@@ -10,7 +10,7 @@ const StripeSuccessPage = () => {
       <Modal>
         <div className="space-y-8 flex flex-col items-center">
           <Heading>Subscription successful</Heading>
-          <div>You can now listen to more stories.</div>
+          <div>You can now listen to 200 stories per month.</div>
         </div>
       </Modal>
     </>

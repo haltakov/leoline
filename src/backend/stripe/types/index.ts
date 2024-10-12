@@ -3,7 +3,10 @@ export interface StripeSession {
 }
 
 export interface CreateStripeSessionParams {
-  email: string;
   priceId: string;
+  baseUrl: string;
+}
+
+export interface CreateCustomerPortalSessionParams {
   baseUrl: string;
 }

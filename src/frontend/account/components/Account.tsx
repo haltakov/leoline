@@ -1,43 +1,65 @@
-import { auth, signOut } from "@/auth";
+"use client";
+
 import Link from "./utils/Link";
 import Button from "./utils/Button";
 import Heading from "./utils/Heading";
 import Section from "./Section";
 import SubscribeButton from "@/frontend/stripe/components/SubscribeButton";
 import { getStripeConfig } from "@/backend/stripe/config";
+import { convertStripeSubscriptionStatus } from "../utils";
+import useUser from "@/frontend/user/hooks/useUser";
+import { useMemo } from "react";
+import { SubscriptionStatus } from "../types";
+import { signOut } from "next-auth/react";
+import LoadingSpinner from "@/frontend/common/components/LoadingSpinner";
+import CustomerPortalButton from "@/frontend/stripe/components/CustomerPortalButton";
 
-const Account = async () => {
-  const session = await auth();
-
+const Account = () => {
   const { monthlyPriceId, yearlyPriceId } = getStripeConfig();
 
-  const subscriptionActive = true;
+  const { userPublic } = useUser();
+
+  const subscriptionStatus = useMemo(
+    () => convertStripeSubscriptionStatus(userPublic?.subscriptionStatus),
+    [userPublic]
+  );
+
+  if (!userPublic) {
+    return (
+      <div className="flex justify-center items-center p-16">
+        <LoadingSpinner className="text-orange-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 flex flex-col items-center">
       <Heading>Account</Heading>
 
       <Section title="Information">
-        Email: <b>{session?.user?.email}</b>
+        Email: <b>{userPublic?.email}</b>
       </Section>
 
       <Section title="Subscription">
         <div className="space-y-4">
           <div>
-            {subscriptionActive
-              ? "You are subscribed for 200 stories/month! You can manage your subscription below."
-              : "Please subscribe below to unlock 200 stories/month. You can save 16% by subscribing for an year."}
+            {subscriptionStatus === SubscriptionStatus.NONE &&
+              "Please subscribe below to unlock 200 stories/month. You can save 16% by subscribing for an year."}
+            {subscriptionStatus === SubscriptionStatus.ACTIVE &&
+              "You are subscribed for 200 stories/month! You can manage your subscription below."}
+            {subscriptionStatus === SubscriptionStatus.PROBLEM &&
+              "There is a problem with your subscription. Please update your subscription details to unlock 200 stories per month."}
           </div>
 
           <div className="flex flex-row gap-2 justify-around">
-            {subscriptionActive ? (
+            {subscriptionStatus === SubscriptionStatus.NONE ? (
               <>
-                <Link href="#">Update or cancel subscription</Link>
+                <SubscribeButton priceId={monthlyPriceId} label="$9 per month" />
+                <SubscribeButton priceId={yearlyPriceId} label="$90 per year" />
               </>
             ) : (
               <>
-                <SubscribeButton priceId={monthlyPriceId} email={session?.user?.email ?? ""} label="$9 per month" />
-                <SubscribeButton priceId={yearlyPriceId} email={session?.user?.email ?? ""} label="$90 per year" />
+                <CustomerPortalButton label="Update or cancel subscription" />
               </>
             )}
           </div>
@@ -53,15 +75,7 @@ const Account = async () => {
         </div>
       </Section>
 
-      <form
-        className="pt-8"
-        action={async () => {
-          "use server";
-          await signOut();
-        }}
-      >
-        <Button>Sign Out</Button>
-      </form>
+      <Button onClick={async () => await signOut()}>Sign Out</Button>
     </div>
   );
 };

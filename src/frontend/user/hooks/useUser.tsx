@@ -20,7 +20,7 @@ const useUser = () => {
     })();
   }, []);
 
-  return { xuid };
+  return { xuid, userPublic };
 };
 
 export default useUser;
