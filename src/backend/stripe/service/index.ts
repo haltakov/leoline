@@ -19,6 +19,7 @@ export const createStripeSession = async ({ email, priceId, baseUrl }: CreateStr
         quantity: 1,
       },
     ],
+    payment_method_types: ["card"],
     mode: "subscription",
     success_url: `${baseUrl}/account/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/account/stripe/cancel?session_id={CHECKOUT_SESSION_ID}`,
