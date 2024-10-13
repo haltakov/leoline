@@ -5,6 +5,7 @@ import { utils } from "@ricky0123/vad-react";
 import { transcribe } from "@/backend/transcribe/service";
 import useChatAndSpeak from "@/frontend/chatAndSpeak/hooks/useChatAndSpeak";
 import { PhraseToSay } from "@/backend/chatAndSpeak/types";
+import { AnswerResult } from "@/frontend/chatAndSpeak/types";
 
 export interface Props {
   language: string;
@@ -48,35 +49,31 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
 
   // Add question text
   const submitQuestion = useCallback(
-    (questionText: string) => {
+    async (questionText: string) => {
       console.debug("ANSWER: Answer start");
 
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
 
-      try {
-        answer({
-          messages: updatedMessages,
-          options: {
-            chaptersCount,
-            isScary: isScaryActive,
-            language,
+      const answerResult = await answer({
+        messages: updatedMessages,
+        options: {
+          chaptersCount,
+          isScary: isScaryActive,
+          language,
+        },
+        events: {
+          abort: abortController.current.signal,
+          onStartSpeaking: () => setState(ConversationState.SPEAK),
+          onEndSpeaking: () => {
+            console.debug("ANSWER: Answer ended");
+            setState(ConversationState.WAIT);
           },
-          events: {
-            abort: abortController.current.signal,
-            onStartSpeaking: () => setState(ConversationState.SPEAK),
-            onEndSpeaking: () => {
-              console.debug("ANSWER: Answer ended");
-              setState(ConversationState.WAIT);
-            },
-          },
-        });
-      } catch (error: any) {
-        console.error("ANSWER: Answer error", error);
+        },
+      });
 
-        if (error.message === "Stories limit reached") {
-          setState(ConversationState.LIMIT_REACHED);
-        }
+      if (answerResult === AnswerResult.LIMIT_REACHED) {
+        setState(ConversationState.LIMIT_REACHED);
       }
     },
     [answer, chaptersCount, isScaryActive, language, messages]
@@ -94,7 +91,7 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
       const questionText = await transcribe(formData, language);
 
       console.debug("TRANSCRIBE: Transcribing finished");
-      submitQuestion(questionText);
+      await submitQuestion(questionText);
     },
     [language, submitQuestion]
   );

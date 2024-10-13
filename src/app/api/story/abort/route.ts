@@ -10,7 +10,7 @@ export async function POST(request: NextAuthRequest) {
 
   if (!storyId) return new NextResponse("Story ID not provided", { status: 400 });
 
-  const { chatUser } = await getCurrentUser(request, request.auth);
+  const { chatUser } = await getCurrentUser(request);
 
   try {
     // Create the story in the DB

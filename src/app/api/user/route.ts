@@ -8,7 +8,7 @@ const logger = pino();
 
 export const GET = auth(async function GET(request: NextAuthRequest) {
   try {
-    const { user } = await getCurrentUser(request, request.auth);
+    const { user } = await getCurrentUser(request);
     return new NextResponse(JSON.stringify(user), { status: 200 });
   } catch (error) {
     logger.error(error);

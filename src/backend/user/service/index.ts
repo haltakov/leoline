@@ -6,7 +6,6 @@ import prisma from "@/backend/prisma";
 import { ChatUser } from "@prisma/client";
 import { getStoriesCountForCurrentMonth, sha256 } from "@/backend/user/utils";
 import { MAX_ANONYMOUS_STORIES_PER_MONTH, MAX_SUBSCRIBED_STORIES_PER_MONTH } from "@/backend/user/const";
-import { Session } from "next-auth";
 import pino from "pino";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 import { convertStripeSubscriptionStatus } from "@/frontend/account/utils";
@@ -15,15 +14,18 @@ import { auth } from "@/auth";
 
 const logger = pino();
 
-export const getCurrentUser = async (request: NextRequest, auth: Session | null): Promise<GetCurrentUserResponse> => {
+export const getCurrentUser = async (request: NextRequest): Promise<GetCurrentUserResponse> => {
   let chatUser: ChatUser | undefined | null;
+
+  const session = await auth();
+  const email = session?.user?.email;
 
   // If the user is authenticated, get the chat user from it
   let user: UserWithChatUser | null = null;
-  if (auth?.user?.email) {
+  if (email) {
     user = await prisma.user.findUnique({
       where: {
-        email: auth.user.email,
+        email,
       },
       include: {
         chatUser: true,
@@ -45,12 +47,12 @@ export const getCurrentUser = async (request: NextRequest, auth: Session | null)
     logger.info("User: Found anonymous user");
 
     // If the user is logged in, but oesn't have a char user, asign the one from the anonymous user
-    if (auth?.user?.email) {
+    if (email) {
       logger.info("User: Updating user chat user for the authenticated user");
 
       await prisma.user.update({
         where: {
-          email: auth.user.email,
+          email,
         },
         data: {
           chatUserId: chatUser.id,
@@ -68,12 +70,10 @@ export const getCurrentUser = async (request: NextRequest, auth: Session | null)
 
   return {
     user: {
-      email: auth?.user?.email || undefined,
+      email: email || undefined,
       name: annonymousUser?.name || undefined,
       subscriptionStatus: user?.stripeSubscriptionStatus || undefined,
       subscriptionPriceId: user?.stripeSubscriptionPriceId || undefined,
-      storiesCount: 0,
-      storiesLenghtSeconds: 0,
       isActive,
     },
     chatUser,
@@ -195,7 +195,7 @@ export const getUserStats = async (): Promise<UserStats> => {
   });
 
   if (!user || !user.chatUserId) {
-    throw new Error("User not found");
+    return { storiesCountCurrentMonth: 0, storiesCountTotal: 0 };
   }
 
   const storiesCountTotal = await prisma.story.count({

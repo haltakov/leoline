@@ -18,7 +18,7 @@ export async function POST(request: NextAuthRequest) {
   if (!options || !options.chaptersCount) return new NextResponse("Options not provided", { status: 400 });
 
   // Get the current user
-  const { user, chatUser } = await getCurrentUser(request, request.auth);
+  const { user, chatUser } = await getCurrentUser(request);
 
   // Check if the user is active
   if (!user.isActive) {

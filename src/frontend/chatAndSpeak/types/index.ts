@@ -13,6 +13,12 @@ export interface AnswerParams {
   events?: ChatAndSpeakEvents;
 }
 
+export enum AnswerResult {
+  SUCCESS = "SUCCESS",
+  ERROR = "ERROR",
+  LIMIT_REACHED = "LIMIT_REACHED",
+}
+
 export interface SayParams {
   phrase: PhraseToSay;
   language: string;

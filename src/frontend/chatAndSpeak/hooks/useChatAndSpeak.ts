@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { sleep } from "@/utils";
-import { AnswerParams, ChatAndSpeakEvents, SayParams } from "../types";
+import { AnswerParams, AnswerResult, ChatAndSpeakEvents, SayParams } from "../types";
 import { useUserContext } from "@/frontend/user/context/UserContext";
 import axios from "axios";
 
@@ -78,8 +78,8 @@ const useChatAndSpeak = () => {
   );
 
   const answer = useCallback(
-    async ({ messages, options, events }: AnswerParams) => {
-      if (!messages.length || !messages[messages.length - 1].isUser) return;
+    async ({ messages, options, events }: AnswerParams): Promise<AnswerResult> => {
+      if (!messages.length || !messages[messages.length - 1].isUser) return AnswerResult.ERROR;
 
       try {
         const response = await fetch("/api/answer", {
@@ -92,7 +92,12 @@ const useChatAndSpeak = () => {
         if (!response.ok || !response.body) {
           console.error(response);
           console.error("Failed to get answer");
-          return;
+
+          if (response.status === 403) {
+            return AnswerResult.LIMIT_REACHED;
+          } else {
+            return AnswerResult.ERROR;
+          }
         }
 
         const storyId = response.headers.get("story-id") || undefined;
@@ -102,10 +107,14 @@ const useChatAndSpeak = () => {
 
         const reader = response.body.getReader();
         await processSpeachStream(reader, events, storyId);
+
+        return AnswerResult.SUCCESS;
       } catch (error) {
         if (events?.abort?.aborted) {
           audioContext.current?.close();
         }
+
+        return AnswerResult.ERROR;
       }
     },
     [processSpeachStream, xuid]

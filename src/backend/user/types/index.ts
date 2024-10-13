@@ -7,8 +7,6 @@ export interface UserPublic {
   name?: string;
   subscriptionStatus?: string;
   subscriptionPriceId?: string;
-  storiesCount: number;
-  storiesLenghtSeconds: number;
   isActive: boolean;
 }
 

@@ -7,6 +7,6 @@ export const PHRASES: Map<PhraseToSay, string> = new Map([
   ],
   [
     PhraseToSay.LIMIT_REACHED,
-    "Sorry, but you have reached the limit of stories for this month. Please ask adult to help you subscribe for more stories.",
+    "Sorry, but you have reached the limit of stories for this month. Please ask an adult to help you subscribe for more stories.",
   ],
 ]);
