@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import Toggle from "@/frontend/conversation/components/Toggle";
 import NoSleep from "nosleep.js";
 import BackgroundBlur from "@/frontend/common/components/BackgroundBlur";
+import { useRouter } from "next/navigation";
 
 interface Props {
   params: {
@@ -16,6 +17,8 @@ interface Props {
 }
 
 const Home = ({ params: { lang } }: Props) => {
+  const router = useRouter();
+
   const [chaptersCount, setChaptersCount] = useState(1);
   const [isScaryActive, setIsScaryActive] = useState(false);
 
@@ -59,6 +62,16 @@ const Home = ({ params: { lang } }: Props) => {
 
   return (
     <div className="relative h-screen">
+      <div className="absolute right-5 top-5 z-50">
+        <Toggle
+          states={[{ value: "1", image: "/img/icons/account.svg" }]}
+          initialState="1"
+          onStateChange={() => {
+            router.push("/account");
+          }}
+        />
+      </div>
+
       <LeolineVideo
         active={state === ConversationState.WAIT}
         src="/video/leoline_waiting_1.mp4"
