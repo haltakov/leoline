@@ -2925,7 +2925,7 @@ __metadata:
     next: "npm:14.2.4"
     next-auth: "npm:^5.0.0-beta.20"
     nosleep.js: "npm:^0.12.0"
-    openai: "npm:^4.52.0"
+    openai: "npm:^4.67.3"
     pino: "npm:^9.2.0"
     postcss: "npm:^8"
     postcss-100vh-fix: "npm:^1.0.2"
@@ -3542,9 +3542,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^4.52.0":
-  version: 4.52.0
-  resolution: "openai@npm:4.52.0"
+"openai@npm:^4.67.3":
+  version: 4.67.3
+  resolution: "openai@npm:4.67.3"
   dependencies:
     "@types/node": "npm:^18.11.18"
     "@types/node-fetch": "npm:^2.6.4"
@@ -3553,10 +3553,14 @@ __metadata:
     form-data-encoder: "npm:1.7.2"
     formdata-node: "npm:^4.3.2"
     node-fetch: "npm:^2.6.7"
-    web-streams-polyfill: "npm:^3.2.1"
+  peerDependencies:
+    zod: ^3.23.8
+  peerDependenciesMeta:
+    zod:
+      optional: true
   bin:
     openai: bin/cli
-  checksum: 10c0/74a018dd722f66af535a55c71cc5fdad98c73681c00bde977e9508c0a526a14b82c056ed6ccb12846f5e4238ba273bcc14e7ec5b611be2ad74553a614019fa67
+  checksum: 10c0/e52c0cbe774cec815023a83fe2058956f608d57546608459f033d4a1bfed6ca5b4b65385689857ed26bff904e21fb2b31ff206c31edf8af186f8811bc1052dfb
   languageName: node
   linkType: hard
 
@@ -4905,13 +4909,6 @@ __metadata:
   version: 4.0.0-beta.3
   resolution: "web-streams-polyfill@npm:4.0.0-beta.3"
   checksum: 10c0/a9596779db2766990117ed3a158e0b0e9f69b887a6d6ba0779940259e95f99dc3922e534acc3e5a117b5f5905300f527d6fbf8a9f0957faf1d8e585ce3452e8e
-  languageName: node
-  linkType: hard
-
-"web-streams-polyfill@npm:^3.2.1":
-  version: 3.3.3
-  resolution: "web-streams-polyfill@npm:3.3.3"
-  checksum: 10c0/64e855c47f6c8330b5436147db1c75cb7e7474d924166800e8e2aab5eb6c76aac4981a84261dd2982b3e754490900b99791c80ae1407a9fa0dcff74f82ea3a7f
   languageName: node
   linkType: hard
 

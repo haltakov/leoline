@@ -11,7 +11,7 @@ import { PHRASES } from "@/backend/chatAndSpeak/utils/phrases";
 import { Stream } from "openai/streaming.mjs";
 import prisma from "@/backend/prisma";
 import { AnswerWithStats } from "./types";
-import { CompletionUsage } from "openai/src/resources/completions.js";
+import { CompletionUsage } from "openai/resources/completions.js";
 
 const logger = pino();
 
