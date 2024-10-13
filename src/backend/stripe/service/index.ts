@@ -88,7 +88,7 @@ export const getStripeSubscriptionStatus = async () => {
   return subscription.status as string;
 };
 
-export const processPayment = async (sessionId: string) => {
+export const fulfillSubscription = async (sessionId: string) => {
   const { secretKey } = getStripeConfig();
   const stripeClient = new Stripe(secretKey);
 
@@ -117,5 +117,7 @@ export const processPayment = async (sessionId: string) => {
         stripeSubscriptionCreatedAt: new Date(subscription.created * 1000),
       },
     });
+  } else {
+    throw Error("Payment not processed");
   }
 };
