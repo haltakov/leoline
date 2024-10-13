@@ -28,3 +28,8 @@ export interface AnonymousUserWithChatUser extends AnonymousUser {
 export interface NextAuthRequest extends NextRequest {
   auth: Session | null;
 }
+
+export interface UserStats {
+  storiesCountCurrentMonth: number;
+  storiesCountTotal: number;
+}

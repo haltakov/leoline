@@ -87,6 +87,8 @@ model ChatUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  isUserLimited Boolean @default(false)
+
   Story Story[]
 
   User          User[]

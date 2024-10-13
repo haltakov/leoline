@@ -7,12 +7,14 @@ import SubscribeButton from "@/frontend/stripe/components/SubscribeButton";
 import { getStripeConfig } from "@/backend/stripe/config";
 import { convertStripeSubscriptionStatus } from "../utils";
 import useUser from "@/frontend/user/hooks/useUser";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { SubscriptionStatus } from "../types";
 import { signOut } from "next-auth/react";
 import LoadingSpinner from "@/frontend/common/components/LoadingSpinner";
 import CustomerPortalButton from "@/frontend/stripe/components/CustomerPortalButton";
 import { getStripeSubscriptionStatus } from "@/backend/stripe/service";
+import { getUserStats } from "@/backend/user/service";
+import { UserStats } from "@/backend/user/types";
 
 const Account = () => {
   const { monthlyPriceId, yearlyPriceId } = getStripeConfig();
@@ -20,6 +22,14 @@ const Account = () => {
   const { userPublic } = useUser();
 
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | undefined>();
+  const [userStats, setUserStats] = useState<UserStats | undefined>();
+
+  useEffect(() => {
+    (async () => {
+      const userStats = await getUserStats();
+      setUserStats(userStats);
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -28,7 +38,7 @@ const Account = () => {
     })();
   }, []);
 
-  if (!userPublic || subscriptionStatus === undefined) {
+  if (!userPublic || !userStats || subscriptionStatus === undefined) {
     return (
       <div className="flex justify-center items-center p-16">
         <LoadingSpinner className="text-orange-600" />
@@ -72,10 +82,10 @@ const Account = () => {
 
       <Section title="Statistics">
         <div>
-          Stories created: <b>35</b>
+          Stories created this month: <b>{userStats.storiesCountCurrentMonth}</b>
         </div>
         <div>
-          Minutes listened: <b>2 hours and 15 minutes</b>
+          Stories created in total: <b>{userStats.storiesCountTotal}</b>
         </div>
       </Section>
 
