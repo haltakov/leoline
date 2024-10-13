@@ -42,6 +42,10 @@ const useChatAndSpeak = () => {
 
         leftover = new Uint8Array(data.buffer, length, remainder);
 
+        if (buffer.length === 0) {
+          continue;
+        }
+
         const audioBuffer = audioContext.current.createBuffer(1, buffer.length, audioContext.current.sampleRate);
         audioBuffer.copyToChannel(buffer, 0);
 
