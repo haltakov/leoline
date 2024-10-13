@@ -18,7 +18,12 @@ export async function POST(request: NextAuthRequest) {
   if (!options || !options.chaptersCount) return new NextResponse("Options not provided", { status: 400 });
 
   // Get the current user
-  const { chatUser } = await getCurrentUser(request, request.auth);
+  const { user, chatUser } = await getCurrentUser(request, request.auth);
+
+  // Check if the user is active
+  if (!user.isActive) {
+    return new NextResponse("Stories limit reached", { status: 403 });
+  }
 
   // Create the story in the DB
   const story = await prisma.story.create({

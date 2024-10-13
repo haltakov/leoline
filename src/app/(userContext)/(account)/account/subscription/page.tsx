@@ -8,6 +8,7 @@ import { fulfillSubscription } from "@/backend/stripe/service";
 import { useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/frontend/common/components/LoadingSpinner";
 import Link from "@/frontend/account/components/utils/Link";
+import { MAX_SUBSCRIBED_STORIES_PER_MONTH } from "@/backend/user/const";
 
 const StripeSuccessPage = () => {
   const searchParams = useSearchParams();
@@ -60,7 +61,10 @@ const StripeSuccessPage = () => {
           {subscriptionSuccessful && (
             <>
               <Heading>Subscription successful</Heading>
-              <div>Thank you for subscribing to Leoline! You can now listen to 200 stories per month.</div>
+              <div>
+                Thank you for subscribing to Leoline! You can now listen to {MAX_SUBSCRIBED_STORIES_PER_MONTH} stories
+                per month.
+              </div>
             </>
           )}
 

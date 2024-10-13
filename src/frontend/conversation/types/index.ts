@@ -11,4 +11,5 @@ export enum ConversationState {
   TRANSCRIBE = "TRANSCRIBE",
   SPEAK = "SPEAK",
   ERROR = "ERROR",
+  LIMIT_REACHED = "LIMIT_REACHED",
 }

@@ -6,4 +6,5 @@ export interface AnswerOptions {
 
 export enum PhraseToSay {
   WELCOME_MESSAGE = "WELCOME_MESSAGE",
+  LIMIT_REACHED = "LIMIT_REACHED",
 }

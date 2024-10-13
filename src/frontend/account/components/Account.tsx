@@ -15,6 +15,7 @@ import CustomerPortalButton from "@/frontend/stripe/components/CustomerPortalBut
 import { getStripeSubscriptionStatus } from "@/backend/stripe/service";
 import { getUserStats } from "@/backend/user/service";
 import { UserStats } from "@/backend/user/types";
+import { MAX_SUBSCRIBED_STORIES_PER_MONTH } from "@/backend/user/const";
 
 const Account = () => {
   const { monthlyPriceId, yearlyPriceId } = getStripeConfig();
@@ -58,11 +59,11 @@ const Account = () => {
         <div className="space-y-4">
           <div>
             {subscriptionStatus === SubscriptionStatus.NONE &&
-              "Please subscribe below to unlock 200 stories/month. You can save 16% by subscribing for an year."}
+              `Please subscribe below to unlock ${MAX_SUBSCRIBED_STORIES_PER_MONTH} stories/month. You can save 16% by subscribing for an year.`}
             {subscriptionStatus === SubscriptionStatus.ACTIVE &&
-              "You are subscribed for 200 stories/month! You can manage your subscription below."}
+              `You are subscribed for ${MAX_SUBSCRIBED_STORIES_PER_MONTH} stories/month! You can manage your subscription below.`}
             {subscriptionStatus === SubscriptionStatus.PROBLEM &&
-              "There is a problem with your subscription. Please update your subscription details to unlock 200 stories per month."}
+              `There is a problem with your subscription. Please update your subscription details to unlock ${MAX_SUBSCRIBED_STORIES_PER_MONTH} stories per month.`}
           </div>
 
           <div className="flex flex-row gap-2 justify-around">

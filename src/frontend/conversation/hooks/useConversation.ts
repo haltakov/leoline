@@ -54,22 +54,30 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
 
-      answer({
-        messages: updatedMessages,
-        options: {
-          chaptersCount,
-          isScary: isScaryActive,
-          language,
-        },
-        events: {
-          abort: abortController.current.signal,
-          onStartSpeaking: () => setState(ConversationState.SPEAK),
-          onEndSpeaking: () => {
-            console.debug("ANSWER: Answer ended");
-            setState(ConversationState.WAIT);
+      try {
+        answer({
+          messages: updatedMessages,
+          options: {
+            chaptersCount,
+            isScary: isScaryActive,
+            language,
           },
-        },
-      });
+          events: {
+            abort: abortController.current.signal,
+            onStartSpeaking: () => setState(ConversationState.SPEAK),
+            onEndSpeaking: () => {
+              console.debug("ANSWER: Answer ended");
+              setState(ConversationState.WAIT);
+            },
+          },
+        });
+      } catch (error: any) {
+        console.error("ANSWER: Answer error", error);
+
+        if (error.message === "Stories limit reached") {
+          setState(ConversationState.LIMIT_REACHED);
+        }
+      }
     },
     [answer, chaptersCount, isScaryActive, language, messages]
   );
@@ -116,6 +124,16 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
 
       say({
         phrase: PhraseToSay.WELCOME_MESSAGE,
+        language,
+        events: {
+          onStartSpeaking: () => setState(ConversationState.SPEAK),
+          onEndSpeaking: () => setState(ConversationState.WAIT),
+        },
+      });
+    }
+    if (state === ConversationState.LIMIT_REACHED) {
+      say({
+        phrase: PhraseToSay.LIMIT_REACHED,
         language,
         events: {
           onStartSpeaking: () => setState(ConversationState.SPEAK),
