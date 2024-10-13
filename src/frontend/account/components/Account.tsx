@@ -16,6 +16,9 @@ import { getStripeSubscriptionStatus } from "@/backend/stripe/service";
 import { getUserStats } from "@/backend/user/service";
 import { UserStats } from "@/backend/user/types";
 import { MAX_SUBSCRIBED_STORIES_PER_MONTH } from "@/backend/user/const";
+import Image from "next/image";
+import Link from "next/link";
+import LinkButton from "@/frontend/account/components/utils/Link";
 
 const Account = () => {
   const { monthlyPriceId, yearlyPriceId } = getStripeConfig();
@@ -49,10 +52,27 @@ const Account = () => {
 
   return (
     <div className="space-y-10 flex flex-col items-center">
-      <Heading>Account</Heading>
+      <div className="flex flex-row justify-between items-center w-full">
+        <div className="flex-grow">
+          <Link href="/">
+            <Image src="/img/icons/leoline.png" alt="Leo" width={48} height={48} className="rounded-full" />
+          </Link>
+        </div>
+        <div className="flex-none">
+          <Heading>Account</Heading>
+        </div>
+        <div className="flex-grow w-[48px]"></div>
+      </div>
 
       <Section title="Information">
-        Email: <b>{userPublic?.email}</b>
+        <div className="flex flex-row gap-2 justify-between items-center">
+          <div>
+            Email: <b>{userPublic?.email}</b>
+          </div>
+          <Button size="sm" onClick={async () => await signOut()}>
+            Sign Out
+          </Button>
+        </div>
       </Section>
 
       <Section title="Subscription">
@@ -90,7 +110,7 @@ const Account = () => {
         </div>
       </Section>
 
-      <Button onClick={async () => await signOut()}>Sign Out</Button>
+      <LinkButton href="/">&lsaquo; Back to Leoline</LinkButton>
     </div>
   );
 };
