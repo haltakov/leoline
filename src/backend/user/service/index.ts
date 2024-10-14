@@ -11,6 +11,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-
 import { convertStripeSubscriptionStatus } from "@/frontend/account/utils";
 import { SubscriptionStatus } from "@/frontend/account/types";
 import { auth } from "@/auth";
+import { headers } from "next/headers";
 
 const logger = pino();
 
@@ -38,7 +39,7 @@ export const getCurrentUser = async (request: NextRequest): Promise<GetCurrentUs
   }
 
   // Get the ananonymous user
-  const annonymousUser = await getAnnonymousUser(request);
+  const annonymousUser = await getAnnonymousUser();
 
   // If the user is not authenticated, get the annonymous user and the corresponding chat user
   if (!chatUser) {
@@ -80,11 +81,13 @@ export const getCurrentUser = async (request: NextRequest): Promise<GetCurrentUs
   };
 };
 
-export const getAnnonymousUser = async (request: NextRequest): Promise<AnonymousUserWithChatUser> => {
-  const localIdentifier = request.headers.get("xuid");
-  const ipAddress = request.headers.get("x-forwarded-for") || request.ip;
+export const getAnnonymousUser = async (): Promise<AnonymousUserWithChatUser> => {
+  const requestHeaders = headers();
 
-  const ipAddressLocation = request.headers.get("cf-ipcountry") || "";
+  const localIdentifier = requestHeaders.get("xuid");
+  const ipAddress = requestHeaders.get("x-forwarded-for") || requestHeaders.get("cf-connecting-ip") || "";
+
+  const ipAddressLocation = requestHeaders.get("cf-ipcountry") || "";
 
   if (!localIdentifier || !ipAddress) {
     throw new Error("Missing anonymoius user identification");
