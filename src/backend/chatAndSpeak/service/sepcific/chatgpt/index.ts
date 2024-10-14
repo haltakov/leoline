@@ -252,7 +252,6 @@ export class ChatGPTChatAndSpeakService extends ChatAndSpeakService {
 
   async say(phrase: PhraseToSay, language: string): Promise<Readable> {
     try {
-      throw new Error("Error generating response from OpenAI (test).");
       // Get the result stream
       const streamCombiner = new StreamCombiner();
 
