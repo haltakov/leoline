@@ -28,6 +28,7 @@ const Account = () => {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | undefined>();
   const [userStats, setUserStats] = useState<UserStats | undefined>();
 
+  // Get the user stats
   useEffect(() => {
     (async () => {
       const userStats = await getUserStats();
@@ -35,6 +36,7 @@ const Account = () => {
     })();
   }, []);
 
+  // Get the subscription status
   useEffect(() => {
     (async () => {
       const status = await getStripeSubscriptionStatus();

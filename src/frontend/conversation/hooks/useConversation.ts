@@ -6,6 +6,7 @@ import { transcribe } from "@/backend/transcribe/service";
 import useChatAndSpeak from "@/frontend/chatAndSpeak/hooks/useChatAndSpeak";
 import { PhraseToSay } from "@/backend/chatAndSpeak/types";
 import { AnswerResult } from "@/frontend/chatAndSpeak/types";
+import { useConversationContext } from "../context/ConversationStateContext";
 
 export interface Props {
   language: string;
@@ -15,7 +16,7 @@ export interface Props {
 
 const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
   // Conversation State
-  const [state, setState] = useState<ConversationState>(ConversationState.INITIALIZE);
+  const { state, setState } = useConversationContext();
 
   // Message History
   const [messages, setMessages] = useState<MessageWithRole[]>([]);
@@ -76,7 +77,7 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
         setState(ConversationState.LIMIT_REACHED);
       }
     },
-    [answer, chaptersCount, isScaryActive, language, messages]
+    [answer, chaptersCount, isScaryActive, language, messages, setState]
   );
 
   // Transcription
@@ -93,14 +94,14 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
       console.debug("TRANSCRIBE: Transcribing finished");
       await submitQuestion(questionText);
     },
-    [language, submitQuestion]
+    [language, setState, submitQuestion]
   );
 
   // Activate action
   const activate = useCallback(() => {
     setState(ConversationState.LISTEN);
     startListen();
-  }, [startListen]);
+  }, [setState, startListen]);
 
   // Deactivate action
   const deactivate = useCallback(() => {
@@ -111,7 +112,7 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
 
     // Reset the abort controller
     abortController.current = new AbortController();
-  }, [abortSpeach, pauseListen]);
+  }, [abortSpeach, pauseListen, setState]);
 
   // Initialize
   useEffect(() => {
@@ -138,7 +139,7 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
         },
       });
     }
-  }, [isVADError, isVADLoading, language, say, state]);
+  }, [isVADError, isVADLoading, language, say, setState, state]);
 
   // Log State
   useEffect(() => {
