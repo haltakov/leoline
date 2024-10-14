@@ -2,6 +2,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { withPlausibleProxy } from "next-plausible";
 
 async function copyVadFiles() {
   console.log("Copying VAD files...");
@@ -37,4 +38,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPlausibleProxy()(nextConfig);

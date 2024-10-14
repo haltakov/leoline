@@ -7,6 +7,7 @@ import useChatAndSpeak from "@/frontend/chatAndSpeak/hooks/useChatAndSpeak";
 import { PhraseToSay } from "@/backend/chatAndSpeak/types";
 import { AnswerResult } from "@/frontend/chatAndSpeak/types";
 import { useConversationContext } from "../context/ConversationStateContext";
+import { usePlausible } from "next-plausible";
 
 export interface Props {
   language: string;
@@ -15,6 +16,9 @@ export interface Props {
 }
 
 const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
+  // Plausible analytics
+  const plausible = usePlausible();
+
   // Conversation State
   const { state, setState } = useConversationContext();
 
@@ -55,6 +59,8 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
 
       const updatedMessages = [...messages, { text: questionText, isUser: true }];
       setMessages(updatedMessages);
+
+      plausible("create-story");
 
       const answerResult = await answer({
         messages: updatedMessages,

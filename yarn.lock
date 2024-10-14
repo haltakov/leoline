@@ -2924,6 +2924,7 @@ __metadata:
     eslint-config-next: "npm:14.2.4"
     next: "npm:14.2.4"
     next-auth: "npm:^5.0.0-beta.20"
+    next-plausible: "npm:^3.12.2"
     nosleep.js: "npm:^0.12.0"
     openai: "npm:^4.67.3"
     pino: "npm:^9.2.0"
@@ -3265,6 +3266,17 @@ __metadata:
     nodemailer:
       optional: true
   checksum: 10c0/c10430f905822d7b9f8a4d96000f7760d8842a41aeaad9318e72038a6b6556a292772d39e906ea0a26aed988ec97a014cc3c0c04035211f474c7603fe0078979
+  languageName: node
+  linkType: hard
+
+"next-plausible@npm:^3.12.2":
+  version: 3.12.2
+  resolution: "next-plausible@npm:3.12.2"
+  peerDependencies:
+    next: ^11.1.0 || ^12.0.0 || ^13.0.0 || ^14.0.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 10c0/eba52d73ddd849c79e26c63920e40a5267f00f4373d76c06b232aa40499c20c190982fd6aed0587e36b712d28bd4343698af3bd094dd0705580471023388c8ff
   languageName: node
   linkType: hard
 
