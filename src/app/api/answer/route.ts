@@ -1,5 +1,6 @@
 import { AnswerOptions } from "@/backend/chatAndSpeak/types";
 import { convertStreamToWeb, getChatAndSpeakService } from "@/backend/chatAndSpeak/utils";
+import { createLog } from "@/backend/logging/service";
 import prisma from "@/backend/prisma";
 import { getCurrentUser } from "@/backend/user/service";
 import { NextAuthRequest } from "@/backend/user/types";
@@ -22,6 +23,7 @@ export async function POST(request: NextAuthRequest) {
 
   // Check if the user is active
   if (!user.isActive) {
+    await createLog({ level: "info", message: "User reached storage limit", notify: false });
     return new NextResponse("Stories limit reached", { status: 403 });
   }
 

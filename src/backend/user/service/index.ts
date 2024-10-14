@@ -12,73 +12,79 @@ import { convertStripeSubscriptionStatus } from "@/frontend/account/utils";
 import { SubscriptionStatus } from "@/frontend/account/types";
 import { auth } from "@/auth";
 import { headers } from "next/headers";
+import { createLog } from "@/backend/logging/service";
 
 const logger = pino();
 
 export const getCurrentUser = async (request: NextRequest): Promise<GetCurrentUserResponse> => {
-  let chatUser: ChatUser | undefined | null;
+  try {
+    let chatUser: ChatUser | undefined | null;
 
-  const session = await auth();
-  const email = session?.user?.email;
+    const session = await auth();
+    const email = session?.user?.email;
 
-  // If the user is authenticated, get the chat user from it
-  let user: UserWithChatUser | null = null;
-  if (email) {
-    user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        chatUser: true,
-      },
-    });
-
-    chatUser = user?.chatUser;
-
-    logger.info("User: Found authenticated user");
-  }
-
-  // Get the ananonymous user
-  const annonymousUser = await getAnnonymousUser();
-
-  // If the user is not authenticated, get the annonymous user and the corresponding chat user
-  if (!chatUser) {
-    chatUser = annonymousUser.chatUser;
-
-    logger.info("User: Found anonymous user");
-
-    // If the user is logged in, but oesn't have a char user, asign the one from the anonymous user
+    // If the user is authenticated, get the chat user from it
+    let user: UserWithChatUser | null = null;
     if (email) {
-      logger.info("User: Updating user chat user for the authenticated user");
-
-      await prisma.user.update({
+      user = await prisma.user.findUnique({
         where: {
           email,
         },
-        data: {
-          chatUserId: chatUser.id,
+        include: {
+          chatUser: true,
         },
       });
+
+      chatUser = user?.chatUser;
+
+      logger.info("User: Found authenticated user");
     }
+
+    // Get the ananonymous user
+    const annonymousUser = await getAnnonymousUser();
+
+    // If the user is not authenticated, get the annonymous user and the corresponding chat user
+    if (!chatUser) {
+      chatUser = annonymousUser.chatUser;
+
+      logger.info("User: Found anonymous user");
+
+      // If the user is logged in, but oesn't have a char user, asign the one from the anonymous user
+      if (email) {
+        logger.info("User: Updating user chat user for the authenticated user");
+
+        await prisma.user.update({
+          where: {
+            email,
+          },
+          data: {
+            chatUserId: chatUser.id,
+          },
+        });
+      }
+    }
+
+    // Raise an error if the chat user is not found (should never happen)
+    if (!chatUser) {
+      throw new Error("Chat user not found");
+    }
+
+    const isActive = await checkUserIsActive(chatUser, user?.stripeSubscriptionStatus || undefined);
+
+    return {
+      user: {
+        email: email || undefined,
+        name: annonymousUser?.name || undefined,
+        subscriptionStatus: user?.stripeSubscriptionStatus || undefined,
+        subscriptionPriceId: user?.stripeSubscriptionPriceId || undefined,
+        isActive,
+      },
+      chatUser,
+    };
+  } catch (error) {
+    await createLog({ level: "error", message: `Cannot get current user: ${error}`, notify: true });
+    throw error;
   }
-
-  // Raise an error if the chat user is not found (should never happen)
-  if (!chatUser) {
-    throw new Error("Chat user not found");
-  }
-
-  const isActive = await checkUserIsActive(chatUser, user?.stripeSubscriptionStatus || undefined);
-
-  return {
-    user: {
-      email: email || undefined,
-      name: annonymousUser?.name || undefined,
-      subscriptionStatus: user?.stripeSubscriptionStatus || undefined,
-      subscriptionPriceId: user?.stripeSubscriptionPriceId || undefined,
-      isActive,
-    },
-    chatUser,
-  };
 };
 
 export const getAnnonymousUser = async (): Promise<AnonymousUserWithChatUser> => {
@@ -183,33 +189,38 @@ export const checkUserIsActive = async (chatUser: ChatUser, stripeSubscriptionSt
 };
 
 export const getUserStats = async (): Promise<UserStats> => {
-  const session = await auth();
-  const email = session?.user?.email;
+  try {
+    const session = await auth();
+    const email = session?.user?.email;
 
-  if (!email) {
-    return { storiesCountCurrentMonth: 0, storiesCountTotal: 0 };
-  }
+    if (!email) {
+      return { storiesCountCurrentMonth: 0, storiesCountTotal: 0 };
+    }
 
-  // Get the user with chatUser from the DB
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-
-  if (!user || !user.chatUserId) {
-    return { storiesCountCurrentMonth: 0, storiesCountTotal: 0 };
-  }
-
-  const storiesCountTotal = await prisma.story.count({
-    where: {
-      chatUser: {
-        id: user.chatUserId,
+    // Get the user with chatUser from the DB
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
       },
-    },
-  });
+    });
 
-  const storiesCountCurrentMonth = await getStoriesCountForCurrentMonth(user.chatUserId);
+    if (!user || !user.chatUserId) {
+      return { storiesCountCurrentMonth: 0, storiesCountTotal: 0 };
+    }
 
-  return { storiesCountCurrentMonth, storiesCountTotal };
+    const storiesCountTotal = await prisma.story.count({
+      where: {
+        chatUser: {
+          id: user.chatUserId,
+        },
+      },
+    });
+
+    const storiesCountCurrentMonth = await getStoriesCountForCurrentMonth(user.chatUserId);
+
+    return { storiesCountCurrentMonth, storiesCountTotal };
+  } catch (error) {
+    await createLog({ level: "error", message: `Cannot get user stats: ${error}`, notify: true });
+    throw error;
+  }
 };

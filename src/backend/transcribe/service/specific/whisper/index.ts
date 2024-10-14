@@ -2,6 +2,7 @@ import { Readable } from "stream";
 import { TranscribeService } from "../../base";
 
 import OpenAI from "openai";
+import { createLog } from "@/backend/logging/service";
 
 export class WhisperTranscribeService extends TranscribeService {
   private readonly openai: OpenAI;
@@ -17,13 +18,18 @@ export class WhisperTranscribeService extends TranscribeService {
   }
 
   async transcribe(audio: Blob): Promise<string> {
-    // Transcribe with Whisper
-    const { text } = await this.openai.audio.transcriptions.create({
-      model: "whisper-1",
-      file: audio as any,
-      language: this.language,
-    });
+    try {
+      // Transcribe with Whisper
+      const { text } = await this.openai.audio.transcriptions.create({
+        model: "whisper-1",
+        file: audio as any,
+        language: this.language,
+      });
 
-    return text;
+      return text;
+    } catch (error) {
+      await createLog({ level: "error", message: `Cannot transcribe audio: ${error}`, notify: true });
+      throw error;
+    }
   }
 }
