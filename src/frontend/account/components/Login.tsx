@@ -20,7 +20,7 @@ const Login = () => {
         <div className="flex-grow w-[48px]"></div>
       </div>
 
-      <div className="flex flex-col items-center space-y-4 px-16 w-full">
+      <div className="flex flex-col items-center space-y-4 w-full max-w-96">
         <form
           className="flex flex-col space-y-2 w-full text-lg"
           action={async (formData) => {
