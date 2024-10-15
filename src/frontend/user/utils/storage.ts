@@ -12,7 +12,7 @@ export const getXuidFromIndexedDB = async (): Promise<string> => {
     request.onsuccess = (event) => {
       const db: IDBDatabase = (event.target as IDBOpenDBRequest).result;
 
-      const transaction: IDBTransaction = db.transaction(["lluos"], "readonly");
+      const transaction: IDBTransaction = db.transaction(["lluos"], "readwrite");
       const objectStore: IDBObjectStore = transaction.objectStore("lluos");
 
       const xuidRequest: IDBRequest = objectStore.get("xuid");
@@ -28,7 +28,9 @@ export const getXuidFromIndexedDB = async (): Promise<string> => {
         if (result !== undefined) {
           resolve(result.value as string);
         } else {
-          resolve("");
+          const xuid = cuid();
+          objectStore.add({ id: "xuid", value: xuid });
+          resolve(xuid);
         }
       };
     };

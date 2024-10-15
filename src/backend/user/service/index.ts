@@ -95,7 +95,7 @@ export const getAnnonymousUser = async (): Promise<AnonymousUserWithChatUser> =>
 
   const ipAddressLocation = requestHeaders.get("cf-ipcountry") || "";
 
-  if (!localIdentifier || !ipAddress) {
+  if (!localIdentifier) {
     throw new Error("Missing anonymoius user identification");
   }
 
