@@ -27,9 +27,16 @@ export default function RootLayout({
       <head>
         <PlausibleProvider domain="leoline.fun" trackOutboundLinks={true} />
       </head>
-      <body className={clsx("overflow-hidden bg-[#e7a731] min-h-screen", inter.className)}>
-        <div className="min-h-screen overflow-hidden">
-          <div className="z-100 bg-[url('/img/leoline_background.jpg')] bg-cover top-[-103px] md:top-[-156px] xl:top-[-208px] w-[1000px] h-[1000px] md:w-[1500px] md:h-[1500px] xl:w-[2000px] xl:h-[2000px] absolute left-1/2 transform -translate-x-1/2 overflow-hidden"></div>
+      <body className={clsx(" bg-[#e7a731] min-h-screen", inter.className)}>
+        <div className="min-h-screen">
+          <div
+            className={clsx(
+              "z-100 bg-[url('/img/leoline_background.jpg')] bg-no-repeat w-full h-screen absolute bg-[#d25e10]",
+              "bg-[size:1000px_1000px] bg-[center_top_-103px]",
+              "md:bg-[size:1500px_1500px] md:bg-[center_top_-156px]",
+              "xl:bg-[size:2000px_2000px] xl:bg-[center_top_-208px]"
+            )}
+          ></div>
           <div className="z-10 relative">{children}</div>
         </div>
       </body>
