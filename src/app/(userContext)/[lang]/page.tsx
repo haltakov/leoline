@@ -62,8 +62,9 @@ const Home = ({ params: { lang } }: Props) => {
 
   return (
     <div className="relative h-screen">
-      <div className="absolute right-5 top-5 z-50">
+      <div className="absolute right-3 top-3 z-50">
         <Toggle
+          size="sm"
           states={[{ value: "1", image: "/img/icons/account.svg" }]}
           initialState="1"
           onStateChange={() => {

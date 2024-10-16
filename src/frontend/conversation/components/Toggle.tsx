@@ -2,15 +2,19 @@ import { useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
 
-const ICON_SIZE = 48;
+const ICON_SIZE = {
+  sm: 36,
+  md: 48,
+};
 
 export interface Props {
+  size?: "sm" | "md";
   states: { value: string; image: string }[];
   initialState: string;
   onStateChange: (state: string) => void;
 }
 
-const Toggle = ({ states, initialState, onStateChange }: Props) => {
+const Toggle = ({ size = "md", states, initialState, onStateChange }: Props) => {
   const [stateIndex, setStateIndex] = useState(states.findIndex((state) => state.value === initialState));
 
   const handleClick = () => {
@@ -32,8 +36,8 @@ const Toggle = ({ states, initialState, onStateChange }: Props) => {
       >
         <Image
           src={states[stateIndex].image}
-          width={ICON_SIZE}
-          height={ICON_SIZE}
+          width={ICON_SIZE[size]}
+          height={ICON_SIZE[size]}
           alt={states[stateIndex].value}
           priority
         />
@@ -45,8 +49,8 @@ const Toggle = ({ states, initialState, onStateChange }: Props) => {
           className="hidden"
           key={state.value}
           src={state.image}
-          width={ICON_SIZE}
-          height={ICON_SIZE}
+          width={ICON_SIZE[size]}
+          height={ICON_SIZE[size]}
           alt={state.value}
           priority
         />
