@@ -84,7 +84,7 @@ const Home = ({ params: { lang } }: Props) => {
         onClick={handleDeactivate}
       />
       <LeolineVideo
-        active={state === ConversationState.TRANSCRIBE}
+        active={state === ConversationState.THINK}
         src="/video/leoline_thinking_1.mp4"
         onClick={handleDeactivate}
       />

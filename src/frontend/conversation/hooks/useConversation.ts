@@ -83,14 +83,14 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
         setState(ConversationState.LIMIT_REACHED);
       }
     },
-    [answer, chaptersCount, isScaryActive, language, messages, setState]
+    [answer, chaptersCount, isScaryActive, language, messages, plausible, setState]
   );
 
   // Transcription
   const transcribeAudio = useCallback(
     async (audio: Blob) => {
       console.debug("TRANSCRIBE: Transcribing audio");
-      setState(ConversationState.TRANSCRIBE);
+      setState(ConversationState.THINK);
 
       const formData = new FormData();
       formData.append("audio", audio, "recording.webm");
@@ -124,7 +124,7 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
   useEffect(() => {
     if (state === ConversationState.INITIALIZE && isVADError) setState(ConversationState.ERROR);
     if (state === ConversationState.INITIALIZE && !isVADLoading) {
-      setState(ConversationState.WAIT);
+      setState(ConversationState.THINK);
 
       say({
         phrase: PhraseToSay.WELCOME_MESSAGE,
@@ -136,6 +136,8 @@ const useConversation = ({ language, isScaryActive, chaptersCount }: Props) => {
       });
     }
     if (state === ConversationState.LIMIT_REACHED) {
+      setState(ConversationState.THINK);
+
       say({
         phrase: PhraseToSay.LIMIT_REACHED,
         language,

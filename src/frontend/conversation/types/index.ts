@@ -8,7 +8,7 @@ export enum ConversationState {
   WAIT = "WAIT",
   LISTEN = "LISTEN",
   RECORD = "RECORD",
-  TRANSCRIBE = "TRANSCRIBE",
+  THINK = "THINK",
   SPEAK = "SPEAK",
   ERROR = "ERROR",
   LIMIT_REACHED = "LIMIT_REACHED",
