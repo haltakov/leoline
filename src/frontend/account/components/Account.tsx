@@ -53,7 +53,7 @@ const Account = () => {
   }
 
   return (
-    <div className="space-y-10 flex flex-col items-center">
+    <div className="space-y-6 md:space-y-10 flex flex-col items-center">
       <div className="flex flex-row justify-between items-center w-full">
         <div className="flex-grow">
           <Link href="/">
@@ -67,13 +67,16 @@ const Account = () => {
       </div>
 
       <Section title="Information">
-        <div className="flex flex-row gap-2 justify-between items-center">
+        <div className="flex flex-col gap-1 md:flex-row md:justify-between md:items-center">
           <div>
             Email: <b>{userPublic?.email}</b>
           </div>
-          <Button size="sm" onClick={async () => await signOut()}>
-            Sign Out
-          </Button>
+
+          <div className="flex justify-center">
+            <Button size="sm" onClick={async () => await signOut()}>
+              Sign Out
+            </Button>
+          </div>
         </div>
       </Section>
 
@@ -91,12 +94,12 @@ const Account = () => {
           <div className="flex flex-row gap-2 justify-around">
             {subscriptionStatus === SubscriptionStatus.NONE ? (
               <>
-                <SubscribeButton priceId={monthlyPriceId} label="$9 per month" />
-                <SubscribeButton priceId={yearlyPriceId} label="$90 per year" />
+                <SubscribeButton priceId={monthlyPriceId} label="$9/month" />
+                <SubscribeButton priceId={yearlyPriceId} label="$90/year" />
               </>
             ) : (
               <>
-                <CustomerPortalButton label="Update or cancel subscription" />
+                <CustomerPortalButton label="Update or cancel" />
               </>
             )}
           </div>

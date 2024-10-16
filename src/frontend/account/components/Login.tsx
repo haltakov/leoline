@@ -22,7 +22,7 @@ const Login = () => {
 
       <div className="flex flex-col items-center space-y-4 w-full max-w-96">
         <form
-          className="flex flex-col space-y-2 w-full text-lg"
+          className="flex flex-col space-y-2 w-full"
           action={async (formData) => {
             "use server";
             await signIn("resend", formData);
